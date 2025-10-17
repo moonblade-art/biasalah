@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Hady",
+    "email": "hady@gmail.com",
+    "password": "hady123",
+    "emisi_offset": 28.5,
+    "emisi_belum": 10.2
+  },
+  {
+    "name": "Addien",
+    "email": "addin@gmail.com",
+    "password": "addin123",
+    "emisi_offset": 35.7,
+    "emisi_belum": 12.3
+  }
+]
