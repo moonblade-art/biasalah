@@ -33,7 +33,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       backgroundColor: ColorPalette.background,
       body: Stack(
         children: [
-          // ☁️ Awan atas
           Positioned(
             top: 0,
             left: 0,
@@ -44,8 +43,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               fit: BoxFit.cover,
             ),
           ),
-
-          // 🌿 Lengkungan bawah
           Align(
             alignment: Alignment.topCenter,
             child: Transform.translate(
@@ -58,8 +55,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
           ),
-
-          // 📄 Konten utama
           Align(
             alignment: Alignment.bottomCenter,
             child: SingleChildScrollView(
@@ -119,8 +114,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
           ),
-
-          // 🔙 Tombol Kembali
             SafeArea(
             child: Padding(
               padding: const EdgeInsets.only(left: 0, top: 16),

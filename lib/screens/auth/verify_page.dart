@@ -32,10 +32,8 @@ class _VerifyPageState extends State<VerifyPage> {
 
     setState(() {
       isResending = true;
-      countdown = 60; // durasi tunggu 30 detik
+      countdown = 60; 
     });
-
-    // simulasi pengiriman ulang kode verifikasi
     Future.delayed(const Duration(seconds: 2), () {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -44,8 +42,6 @@ class _VerifyPageState extends State<VerifyPage> {
         ),
       );
     });
-
-    // mulai timer
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (countdown == 0) {
         setState(() {
@@ -76,7 +72,6 @@ class _VerifyPageState extends State<VerifyPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // ☁️ Awan atas
             Positioned(
               top: 0,
               left: 0,
@@ -87,8 +82,6 @@ class _VerifyPageState extends State<VerifyPage> {
                 fit: BoxFit.cover,
               ),
             ),
-
-            // 🌿 Lengkungan bawah
             Align(
               alignment: Alignment.topCenter,
               child: Transform.translate(
@@ -101,8 +94,6 @@ class _VerifyPageState extends State<VerifyPage> {
                 ),
               ),
             ),
-
-            // 📄 Konten utama
             Align(
               alignment: Alignment.bottomCenter,
               child: SingleChildScrollView(
@@ -132,8 +123,6 @@ class _VerifyPageState extends State<VerifyPage> {
                         ),
                       ),
                       const SizedBox(height: 30),
-
-                      // 🔢 Kode OTP
                       PinCodeTextField(
                         appContext: context,
                         controller: codeController,
@@ -152,8 +141,6 @@ class _VerifyPageState extends State<VerifyPage> {
                         ),
                       ),
                       const SizedBox(height: 30),
-
-                      // ✅ Tombol verifikasi
                       PrimaryButton(
                         text: "Verifikasi Sekarang",
                         onPressed: () {
@@ -164,8 +151,6 @@ class _VerifyPageState extends State<VerifyPage> {
                       ),
 
                       const SizedBox(height: 16),
-
-                      // 🔁 Tombol kirim ulang kode
                       Center(
                         child: TextButton(
                           onPressed: isResending ? null : resendCode,
@@ -187,8 +172,6 @@ class _VerifyPageState extends State<VerifyPage> {
                 ),
               ),
             ),
-
-            // 🔙 Tombol kembali
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(left: 0, top: 16),

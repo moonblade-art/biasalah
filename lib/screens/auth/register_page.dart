@@ -26,7 +26,6 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // 🌈 Background gradasi
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -41,7 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
 
-          // ☁️ Awan atas
           Positioned(
             top: 0,
             left: 0,
@@ -53,7 +51,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
 
-          // 🌿 Lengkungan bawah
           Align(
             alignment: Alignment.topCenter,
             child: Transform.translate(
@@ -68,7 +65,6 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
 
 
-          // 🧾 Form Register
           SafeArea(
             child: SingleChildScrollView(
               padding:

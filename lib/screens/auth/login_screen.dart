@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:emission_tracker/navigations/navigations.dart';
+import 'package:emission_tracker/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -43,9 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = false);
 
     if (user != null && mounted) {
-      // Transisi ke Home dengan animasi
       Navigator.of(context).pushReplacement(
-        PageTransitionWidget.createRoute(const Navigations()),
+        PageTransitionWidget.createRoute( Navigations()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -62,13 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // 🌈 Background Gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  ColorPalette.background,
-                  ColorPalette.background,
                   ColorPalette.background,
                 ],
                 begin: Alignment.topLeft,
@@ -76,8 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
-          // ☁️ Awan atas
           Positioned(
             top: 0,
             left: 0,
@@ -88,8 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
               fit: BoxFit.cover,
             ),
           ),
-
-          // 🌿 Lengkungan bawah
           Align(
             alignment: Alignment.topCenter,
             child: Transform.translate(
@@ -104,8 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
 
-
-          // 🧾 Form Login
           SafeArea(
             child: SingleChildScrollView(
               padding:
@@ -144,8 +135,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _handleLogin,
                     ),
                     const SizedBox(height: 10),
-
-                    // 🔗 Lupa kata sandi
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -158,8 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(color: Colors.black54),
                       ),
                     ),
-
-                    // 🔗 Belum punya akun
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -177,7 +164,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-                    // 🔙 Tombol Kembali ke Welcome
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.only(left: 0, top: 16),

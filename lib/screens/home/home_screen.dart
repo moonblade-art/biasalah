@@ -37,11 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadDummyData() async {
     final String response = await rootBundle.loadString('models/users.json');
     final List<dynamic> data = json.decode(response);
-    print("Dummy loaded: $data");
-
 
     if (data.isNotEmpty) {
-      // ambil user pertama saja untuk sementara
       final user = data.first;
       setState(() {
         userName = user['name'];
@@ -55,15 +52,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: ColorPalette.background,
-      body: SingleChildScrollView(
+    return SafeArea(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🌿 Header Card Section
               Card(
                 color: ColorPalette.primaryColor,
                 elevation: 4,
@@ -71,11 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Sapaan user
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -83,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             'Selamat datang,',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white,
                             ),
                           ),
                           Text(
@@ -97,7 +93,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
 
-                      // Tombol notifikasi
                       IconButton(
                         icon: const Icon(
                           Icons.notifications_active_outlined,
@@ -119,12 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 24),
-
-              // 🌱 Section Emisi CO₂
               CurvedContainer(
-                backgroundColor: ColorPalette.third,
+                backgroundColor: ColorPalette.secondary,
                 curveRadius: 30,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -132,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       "Total Emisi CO₂",
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                        color: Colors.white,
+                        color: ColorPalette.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -174,21 +168,44 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 24),
-
-              // 🫶 Komunitas Section
-              Text(
-                "Komunitas",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: ColorPalette.textPrimary,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Komunitas",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: ColorPalette.textPrimary,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        PageTransitionWidget.createRoute(
+                          const ComunityScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Lihat Semua",
+                      style: GoogleFonts.poppins(
+                        color: ColorPalette.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
+
               SizedBox(
-                height: 160,
+                height: 200,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
                   itemCount: 5,
                   padding: const EdgeInsets.only(right: 12),
                   itemBuilder: (context, index) {
@@ -205,11 +222,53 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: const EdgeInsets.only(right: 16),
                         width: 300,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          image: DecorationImage(
-                            image: AssetImage('assets/komunitas${index + 1}.png'),
-                            fit: BoxFit.cover,
-                          ),
+                          color: ColorPalette.background,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(15)),
+                              child: Image.asset(
+                                'assets/komunitas${index + 1}.png',
+                                height: 120,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Komunitas ${index + 1}",
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      color: ColorPalette.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Peduli lingkungan ",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: ColorPalette.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -218,8 +277,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 24),
-
-              // 📚 Edukasi & Rekomendasi Kendaraan
               Text(
                 "Edukasi & Rekomendasi Kendaraan",
                 style: GoogleFonts.poppins(
@@ -241,6 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () async => await launchUrl(Uri.parse(edukasiUrl)),
                   ),
                   const SizedBox(height: 12),
+
                   _buildInfoCard(
                     context,
                     title: "Kendaraan Hijau",
@@ -248,6 +306,42 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.directions_bike_rounded,
                     color: Colors.orangeAccent,
                     onTap: () async => await launchUrl(Uri.parse(kendaraanUrl)),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _buildInfoCard(
+                    context,
+                    title: "Gaya Hidup Hijau",
+                    subtitle: "Langkah kecil menuju bumi lestari",
+                    icon: Icons.eco_rounded,
+                    color: Colors.greenAccent.shade700,
+                    onTap: () async => await launchUrl(
+                      Uri.parse("https://www.worldwildlife.org/initiatives/climate"),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _buildInfoCard(
+                    context,
+                    title: "Energi Terbarukan",
+                    subtitle: "Sumber energi bersih untuk masa depan",
+                    icon: Icons.bolt_rounded,
+                    color: Colors.lightBlueAccent.shade700,
+                    onTap: () async => await launchUrl(
+                      Uri.parse("https://www.irena.org/renewable-energy"),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  _buildInfoCard(
+                    context,
+                    title: "Pengelolaan Sampah",
+                    subtitle: "Kurangi, guna ulang, daur ulang",
+                    icon: Icons.recycling_rounded,
+                    color: Colors.teal.shade600,
+                    onTap: () async => await launchUrl(
+                      Uri.parse("https://www.unep.org/ourwork/environmental-governance/waste-management"),
+                    ),
                   ),
                 ],
               ),
@@ -259,8 +353,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // 🔹 Kartu kecil total emisi
   Widget _buildEmisiCard({
     required String title,
     required String value,
@@ -270,9 +362,15 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 150,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white70,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
             title,
             style: GoogleFonts.poppins(
               fontSize: 13,
-              color: Colors.white70,
+              color: ColorPalette.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
@@ -289,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
             value,
             style: GoogleFonts.poppins(
               fontSize: 20,
-              color: Colors.white.withOpacity(opacity),
+              color: ColorPalette.textPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -297,8 +395,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // 🔹 Card edukasi & rekomendasi
   Widget _buildInfoCard(
     BuildContext context, {
     required String title,
@@ -339,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
-                      color: ColorPalette.textPrimary.withOpacity(0.6),
+                      color: ColorPalette.textPrimary,
                     ),
                   ),
                 ],

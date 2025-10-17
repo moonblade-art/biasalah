@@ -32,6 +32,7 @@ dependencies:
   flutter_svg: ^2.2.1
   url_launcher: ^6.1.10
   curved_navigation_bar: ^1.0.6
+  animations: ^2.0.11
 
 dev_dependencies:
   flutter_test:
@@ -46,6 +47,8 @@ flutter:
     - assets/Vector.svg
     - assets/header.svg
     - assets/komunitas1.png
+    - assets/komunitas4.png
+    - assets/komunitas5.png
     - assets/komunitas2.png
     - assets/komunitas3.png
     - models/dummy_login.json

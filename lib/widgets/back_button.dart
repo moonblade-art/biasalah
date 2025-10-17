@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/page_transition.dart';
 
 class BackButtonWidget extends StatelessWidget {
-  final Widget? previousPage; // halaman tujuan saat kembali
+  final Widget? previousPage; 
   final Color color;
 
   const BackButtonWidget({
@@ -20,12 +20,10 @@ class BackButtonWidget extends StatelessWidget {
           icon: Icon(Icons.arrow_back_ios_new_rounded, color: color),
           onPressed: () {
             if (previousPage != null) {
-              // Jika ada halaman tujuan, gunakan animasi balik
               Navigator.of(context).pushReplacement(
                 PageTransitionWidget.createRoute(previousPage!),
               );
             } else {
-              // Jika tidak ada, lakukan pop biasa
               Navigator.of(context).pop();
             }
           },

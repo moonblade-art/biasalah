@@ -117,7 +117,6 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // ☁️ Awan atas
             Positioned(
               top: 0,
               left: 0,
@@ -128,8 +127,6 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
                 fit: BoxFit.cover,
               ),
             ),
-
-            // 🌿 Lengkungan bawah
             Align(
               alignment: Alignment.topCenter,
               child: Transform.translate(
@@ -142,8 +139,6 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
                 ),
               ),
             ),
-
-            // Konten utama (di bawah)
             Align(
               alignment: Alignment.bottomCenter,
               child: SingleChildScrollView(
@@ -172,8 +167,6 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Pin code field
                       PinCodeTextField(
                         appContext: context,
                         controller: _codeController,
@@ -192,15 +185,11 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Verify button
                       PrimaryButton(
                         text: "Verifikasi Sekarang",
                         onPressed: _onVerifyPressed,
                       ),
                       const SizedBox(height: 12),
-
-                      // Resend area: button + cooldown
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -225,8 +214,6 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
                         ],
                       ),
                       const SizedBox(height: 6),
-
-                      // Optional helper link: kembali ke Lupa kata sandi
                       Center(
                         child: TextButton(
                           onPressed: () {
@@ -245,8 +232,6 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
                 ),
               ),
             ),
-
-            // Back button (top-left)
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, top: 16),

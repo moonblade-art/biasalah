@@ -15,13 +15,10 @@ class WelcomePage extends StatelessWidget {
       backgroundColor: ColorPalette.background,
       body: Stack(
         children: [
-          // 🌿 Background gradient (pakai palette agar lembut)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  ColorPalette.background,
-                  ColorPalette.background,
                   ColorPalette.background,
                 ],
                 begin: Alignment.topLeft,
@@ -29,8 +26,6 @@ class WelcomePage extends StatelessWidget {
               ),
             ),
           ),
-
-          // ☁️ Awan atas
           Positioned(
             top: MediaQuery.of(context).size.height * 0.05,
             left: 0,
@@ -41,8 +36,6 @@ class WelcomePage extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-
-          // 🌿 Lengkungan bawah
           Align(
             alignment: Alignment.bottomCenter,
             child: Transform.translate(
@@ -55,8 +48,6 @@ class WelcomePage extends StatelessWidget {
               ),
             ),
           ),
-
-          // 🌿 Konten utama
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -66,8 +57,6 @@ class WelcomePage extends StatelessWidget {
                   const SizedBox(height: 90),
                   Image.asset('assets/logo.png', height: 170),
                   const SizedBox(height: 25),
-
-                  // 🌿 Title utama
                   Text(
                     "Hitung Jejakmu, Hijaukan Bumi",
                     textAlign: TextAlign.center,
@@ -78,8 +67,6 @@ class WelcomePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-
-                  // 🌿 Subtitle
                   Text(
                     "Catat emisi kendaraanmu, donasikan kebaikanmu",
                     textAlign: TextAlign.center,
@@ -89,8 +76,6 @@ class WelcomePage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 50),
-
-                  // 🔥 Tombol Masuk dan Registrasi (PageTransitionWidget)
                   _animatedButton("Masuk", context, const LoginScreen()),
                   const SizedBox(height: 14),
                   _outlinedButton("Registrasi", context, const RegisterPage()),
@@ -103,8 +88,6 @@ class WelcomePage extends StatelessWidget {
       ),
     );
   }
-
-  // 🔹 Tombol "Masuk"
   Widget _animatedButton(String text, BuildContext context, Widget targetPage) {
     return SizedBox(
       width: double.infinity,
@@ -129,8 +112,6 @@ class WelcomePage extends StatelessWidget {
       ),
     );
   }
-
-  // 🔹 Tombol "Registrasi"
   Widget _outlinedButton(String text, BuildContext context, Widget targetPage) {
     return SizedBox(
       width: double.infinity,

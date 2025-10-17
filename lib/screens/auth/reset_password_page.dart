@@ -35,7 +35,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // ☁️ Awan atas
             Positioned(
               top: 0,
               left: 0,
@@ -47,7 +46,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               ),
             ),
 
-            // 🌿 Lengkungan bawah
             Align(
               alignment: Alignment.topCenter,
               child: Transform.translate(
@@ -61,7 +59,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               ),
             ),
 
-            // 📄 Konten utama
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 320),
               child: CurvedContainer(
@@ -115,8 +112,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 ),
               ),
             ),
-
-            // 🔙 Tombol Kembali
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, top: 16),

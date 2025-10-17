@@ -13,7 +13,7 @@ class CurvedContainer extends StatelessWidget {
     this.curveRadius = 30.0,
     this.padding = const EdgeInsets.all(24),
     this.backgroundColor,
-    this.maxWidth = 600, // biar tidak penuh layar
+    this.maxWidth = 600, 
   });
 
   @override
@@ -28,7 +28,7 @@ class CurvedContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(curveRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black,
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
