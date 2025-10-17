@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:emission_tracker/navigations/navigations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +10,7 @@ import '../../widgets/curved_container.dart';
 import '../../widgets/back_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
-import '../home/home_screen.dart';
+import '../../navigations/navigations.dart';
 import 'forgot_password_page.dart';
 import 'register_page.dart';
 import '../welcome_page.dart';
@@ -44,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (user != null && mounted) {
       // Transisi ke Home dengan animasi
       Navigator.of(context).pushReplacement(
-        PageTransitionWidget.createRoute(const HomeScreen()),
+        PageTransitionWidget.createRoute(const Navigations()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

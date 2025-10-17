@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // 🌱 Section Emisi CO₂
               CurvedContainer(
-                backgroundColor: ColorPalette.secondary,
+                backgroundColor: ColorPalette.third,
                 curveRadius: 30,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Column(
