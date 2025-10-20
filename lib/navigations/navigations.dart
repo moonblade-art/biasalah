@@ -1,3 +1,4 @@
+import 'package:emission_tracker/screens/home/tracking/vechicle_choose_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -5,10 +6,10 @@ import 'package:flutter/animation.dart';
 import 'package:animations/animations.dart'; // ✅ Tambahkan ini
 
 import '../screens/home/home_screen.dart';
-import '../screens/home/profile_screen.dart';
+import '../screens/home/profile/profile_screen.dart';
 import '../screens/home/donation_screen.dart';
 import '../screens/home/history/history_screen.dart';
-import '../screens/home/tracking_screen.dart';
+import '../screens/home/tracking/tracking_screen.dart';
 
 import '../utils/color_palette.dart';
 
@@ -23,7 +24,7 @@ class _NavigationsState extends State<Navigations> {
   int _page = 2; // 🌿 mulai dari Home
 
   final List<Widget> _pages = [
-    TrackingScreen(),
+    VehicleChooseScreen(),
     HistoryScreen(),
     HomeScreen(),
     DonationScreen(),
@@ -36,7 +37,7 @@ class _NavigationsState extends State<Navigations> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       // 🌿 Gunakan PageTransitionSwitcher agar animasi antar halaman lebih smooth dan konsisten
       body: PageTransitionSwitcher(
         duration: const Duration(milliseconds: 500),

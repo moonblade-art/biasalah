@@ -6,6 +6,7 @@ class CurvedContainer extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final Color? backgroundColor;
   final double maxWidth;
+  final bool showShadow;
 
   const CurvedContainer({
     super.key,
@@ -13,7 +14,8 @@ class CurvedContainer extends StatelessWidget {
     this.curveRadius = 30.0,
     this.padding = const EdgeInsets.all(24),
     this.backgroundColor,
-    this.maxWidth = 600, 
+    this.maxWidth = 600,
+    this.showShadow = true,
   });
 
   @override
@@ -23,19 +25,21 @@ class CurvedContainer extends StatelessWidget {
         constraints: BoxConstraints(
           maxWidth: maxWidth,
         ),
+        padding: padding,
         decoration: BoxDecoration(
           color: backgroundColor ?? Colors.white,
           borderRadius: BorderRadius.circular(curveRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: showShadow
+              ? [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : [],
         ),
-        padding: padding,
-        child: child,
+        child: child, 
       ),
     );
   }

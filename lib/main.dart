@@ -11,15 +11,21 @@ import 'screens/auth/reset_password_page.dart';
 import 'screens/auth/verfy_password_page.dart';
 
 import 'screens/home/home_screen.dart';
-import 'screens/home/tracking_screen.dart';
-import 'screens/home/profile_screen.dart';
+import 'screens/home/profile/profile_screen.dart';
 import 'screens/home/donation_screen.dart';
 import 'screens/home/comunity_screen.dart';
 
-import 'screens/home/history/history_vichile_screen.dart';
+import 'screens/home/tracking/tracking_screen.dart';
+import 'screens/home/tracking/fuel_choose_screen.dart';
+import 'screens/home/tracking/vechicle_choose_screen.dart';
+
+import 'screens/home/history/history_vehicle_screen.dart';
 import 'screens/home/history/history_offset_screen.dart';
 
 import 'screens/home/notifications/notification_screen.dart';
+import 'screens/home/notifications/edit_notification_screen.dart';
+
+import 'screens/home/profile/edit_profile_screen.dart';
 
 import 'navigations/navigations.dart';
 
@@ -65,6 +71,8 @@ class EcoTrackApp extends StatelessWidget {
         '/history-offset': (context) => const HistoryOffsetScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/navigations': (context) => const Navigations(),
+        '/edit-profile': (context) => const editProfileScreen(),
+        '/edit-notification': (context) => const editNotificationScreen(),
       }
     );
   }

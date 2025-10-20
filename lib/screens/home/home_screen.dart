@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDummyData() async {
-    final String response = await rootBundle.loadString('models/users.json');
+    final String response = await rootBundle.loadString('models/dummy_login.json');
     final List<dynamic> data = json.decode(response);
 
     if (data.isNotEmpty) {
@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       IconButton(
                         icon: const Icon(
-                          Icons.notifications_active_outlined,
+                          Icons.notifications_none_outlined,
                           color: Colors.white,
                           size: 28,
                         ),
@@ -362,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 150,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white70,
+        color: Colors.white38,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

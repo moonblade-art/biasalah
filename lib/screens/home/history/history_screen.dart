@@ -70,11 +70,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const BackButtonWidget(color: Colors.white),
                   Text(
                     "Riwayat",
                     style: GoogleFonts.poppins(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
