@@ -73,13 +73,6 @@ class BantuanMasukanScreen extends StatelessWidget {
               'Profile Management',
               'Kelola profil dan preferensi akun Anda',
             ),
-
-            // Subfitur Riwayat
-            _buildSectionHeader('Fitur Riwayat'),
-            _buildInfoCard(
-              'Fitur Riwayat memungkinkan Anda melihat detail lengkap dari semua aktivitas:\n\n• Riwayat Perjalanan - Detail jarak, emisi karbon, dan rute perjalanan\n• Riwayat Donasi - Catatan donasi offset karbon dan dampak lingkungan\n• Detail Analytics - Analisis tren pengurangan emisi over time',
-            ),
-
             // Masalah & Solusi
             _buildSectionHeader('Masalah Umum & Solusi'),
             _buildProblemSolutionCard(
