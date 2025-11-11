@@ -70,8 +70,6 @@ class TripSummaryScreen extends StatelessWidget {
                       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                   subdomains: const ['a', 'b', 'c'],
                 ),
-
-                // Tampilkan rute asli
                 if (routePoints.isNotEmpty)
                   PolylineLayer(
                     polylines: [
