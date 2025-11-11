@@ -12,7 +12,7 @@ import 'screens/auth/verfy_password_page.dart';
 
 import 'screens/home/home_screen.dart';
 import 'screens/home/profile/profile_screen.dart';
-import 'screens/home/donation_screen.dart';
+import 'screens/home/donation/donation_screen.dart';
 import 'screens/home/comunity_screen.dart';
 
 import 'screens/home/tracking/tracking_screen.dart';
@@ -63,11 +63,9 @@ class EcoTrackApp extends StatelessWidget {
         '/reset': (context) => const ResetPasswordPage(),
         '/verify-password': (context) => const VerifyPasswordPage(),
         '/home': (context) => const HomeScreen(),
-        '/tracking': (context) => const TrackingScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/donation': (context) => const DonationScreen(),
         '/comunity': (context) => const ComunityScreen(),
-        '/history-vichile': (context) => const HistoryVichileScreen(),
         '/history-offset': (context) => const HistoryOffsetScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/navigations': (context) => const Navigations(),

@@ -3,189 +3,378 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-
+import '/widgets/page_transition.dart';
+import '../notifications/notification_screen.dart';
 import '/widgets/primary_button.dart';
 import '/utils/color_palette.dart';
-import '../history/history_screen.dart';
+import '/utils/trip_history.dart';
 
-
-class TripSummaryScreen extends StatelessWidget {
+class TripSummaryScreen extends StatefulWidget {
+  final String vehicleType;
   final double distance;
   final int duration;
   final double emission;
-  final List<LatLng> routePoints; // ⬅️ Tambahan baru
+  final List<LatLng> routePoints;
 
   const TripSummaryScreen({
     super.key,
+    required this.vehicleType,
     required this.distance,
     required this.duration,
     required this.emission,
-    required this.routePoints, // ⬅️ Tambahan baru
+    required this.routePoints,
   });
 
+  @override
+  State<TripSummaryScreen> createState() => _TripSummaryScreenState();
+}
+
+class _TripSummaryScreenState extends State<TripSummaryScreen> {
+  late final MapController _mapController;
+  final TextEditingController _titleController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _titleController.text = _generateDefaultTitle();
+  }
+
+  String _generateDefaultTitle() {
+    final now = DateTime.now();
+    final monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return 'Perjalanan ${now.day} ${monthNames[now.month - 1]} ${now.year}';
+  }
+
   String _formatDuration(int seconds) {
-    final minutes = seconds ~/ 60;
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
     final secs = seconds % 60;
-    return "${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}";
+    if (hours > 0) {
+      return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    } else {
+      return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    }
+  }
+
+  Future<void> _showSaveDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.bookmark_add_rounded, color: ColorPalette.primaryColor, size: 24),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Simpan Perjalanan",
+                        style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Berikan judul untuk perjalanan ini:",
+                    style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      hintText: "Contoh: Perjalanan ke Kantor",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: ColorPalette.primaryColor),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: Icon(Icons.title, color: Colors.grey[500]),
+                    ),
+                    style: GoogleFonts.poppins(fontSize: 16),
+                    autofocus: true,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Judul tidak boleh kosong';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            side: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          child: Text(
+                            "Batal",
+                            style: GoogleFonts.poppins(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              Navigator.pop(context);
+                              _saveTripToHistory(_titleController.text.trim(), context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ColorPalette.primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            "Simpan",
+                            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _saveTripToHistory(String title, BuildContext context) async {
+    await TripHistory.saveTrip(
+      title: title,
+      vehicleType: widget.vehicleType,
+      distance: widget.distance,
+      duration: widget.duration,
+      emission: widget.emission,
+      routePoints: widget.routePoints,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text("Perjalanan '$title' disimpan ke riwayat"),
+          ],
+        ),
+        duration: const Duration(seconds: 3),
+        backgroundColor: ColorPalette.primaryColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const Navigations()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Jika tidak ada titik rute, fallback ke lokasi Batam
+    final routePoints = widget.routePoints;
     final initialCenter = routePoints.isNotEmpty
         ? routePoints.first
         : const LatLng(1.0456, 104.0305);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (routePoints.isNotEmpty && mounted) {
+        try {
+          final bounds = LatLngBounds.fromPoints(routePoints);
+          _mapController.fitBounds(
+            bounds,
+            options: const FitBoundsOptions(padding: EdgeInsets.all(50)),
+          );
+        } catch (e) {
+          debugPrint("Error setting map bounds: $e");
+        }
+      }
+    });
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          "Catatan Perjalanan",
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Column(
-        children: [
-          // MAP RINGKASAN
-          Expanded(
-            flex: 2,
-            child: FlutterMap(
-              options: MapOptions(
-                initialCenter: initialCenter,
-                initialZoom: 14.0,
-              ),
+      backgroundColor: ColorPalette.background,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final mapHeight = constraints.maxHeight * 0.6;
+
+            return Column(
               children: [
-                TileLayer(
-                  urlTemplate:
-                      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  subdomains: const ['a', 'b', 'c'],
-                ),
-                if (routePoints.isNotEmpty)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: routePoints,
-                        strokeWidth: 5,
-                        color: ColorPalette.primaryColor,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
+                  decoration: BoxDecoration(
+                    color: ColorPalette.primaryColor,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Catatan Perjalanan",
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
-
-                // Marker start dan end
-                MarkerLayer(
-                  markers: [
-                    if (routePoints.isNotEmpty)
-                      Marker(
-                        width: 40,
-                        height: 40,
-                        point: routePoints.first,
-                        child: const Icon(Icons.flag, color: Colors.green, size: 32),
-                      ),
-                    if (routePoints.length > 1)
-                      Marker(
-                        width: 40,
-                        height: 40,
-                        point: routePoints.last,
-                        child: const Icon(Icons.location_on,
-                            color: Colors.red, size: 36),
-                      ),
-                  ],
                 ),
-              ],
-            ),
-          ),
 
-          // RINGKASAN DATA
-          Expanded(
-            flex: 1,
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
+                SizedBox(
+                  height: mapHeight,
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: initialCenter,
+                      initialZoom: 15.0,
+                    ),
                     children: [
-                      Text(
-                        "Rangkuman Perjalanan",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
+                      TileLayer(
+                        urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        subdomains: const ['a', 'b', 'c'],
+                        userAgentPackageName: 'com.example.emission_tracker',
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildInfoCard(
-                            icon: Icons.route,
-                            label: "Jarak",
-                            value: "${distance.toStringAsFixed(2)} km",
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: routePoints.isNotEmpty
+                                ? routePoints
+                                : [
+                                    initialCenter,
+                                    LatLng(
+                                      initialCenter.latitude + 0.001,
+                                      initialCenter.longitude + 0.001,
+                                    )
+                                  ],
+                            strokeWidth: 5,
+                            color: ColorPalette.primaryColor,
                           ),
-                          _buildInfoCard(
-                            icon: Icons.access_time,
-                            label: "Waktu",
-                            value: _formatDuration(duration),
+                        ],
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            width: 40,
+                            height: 40,
+                            point: routePoints.isNotEmpty ? routePoints.first : initialCenter,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: ColorPalette.primaryColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 3),
+                              ),
+                              child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
+                            ),
                           ),
-                          _buildInfoCard(
-                            icon: Icons.eco,
-                            label: "Emisi",
-                            value: "${emission.toStringAsFixed(2)} kg",
-                          ),
+                          if (routePoints.length > 1)
+                            Marker(
+                              width: 40,
+                              height: 40,
+                              point: routePoints.last,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: ColorPalette.primaryColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 3),
+                                ),
+                                child: const Icon(Icons.location_pin, color: Colors.white, size: 20),
+                              ),
+                            ),
                         ],
                       ),
                     ],
                   ),
+                ),
 
-PrimaryButton(
-  text: "Simpan ke Riwayat",
-  onPressed: () {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Perjalanan disimpan ke riwayat"),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const Navigations(),
-      ),
-    );
-  },
-),
-
-                ],
-              ),
-            ),
-          ),
-        ],
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Rangkuman Perjalanan",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Wrap(
+                          spacing: 24,
+                          runSpacing: 16,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            _buildInfoCard(
+                              icon: Icons.route_rounded,
+                              label: "Jarak Tempuh",
+                              value: "${widget.distance.toStringAsFixed(2)} km",
+                            ),
+                            _buildInfoCard(
+                              icon: Icons.access_time_rounded,
+                              label: "Durasi",
+                              value: _formatDuration(widget.duration),
+                            ),
+                            _buildInfoCard(
+                              icon: Icons.eco_rounded,
+                              label: "Estimasi Emisi",
+                              value: "${widget.emission.toStringAsFixed(2)} kg CO₂",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+                        PrimaryButton(
+                          text: "Simpan ke Riwayat",
+                          onPressed: () => _showSaveDialog(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
+  // ✅ FUNGSI INI HARUS DI LUAR build()
   Widget _buildInfoCard({
     required IconData icon,
     required String label,
@@ -193,31 +382,35 @@ PrimaryButton(
   }) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: ColorPalette.primaryColor.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: ColorPalette.primaryColor, size: 26),
-        ),
+        Icon(icon, color: ColorPalette.primaryColor, size: 28),
         const SizedBox(height: 8),
         Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: 13,
-            color: Colors.grey[700],
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
           ),
+          textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 4),
         Text(
           value,
           style: GoogleFonts.poppins(
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    _titleController.dispose();
+    super.dispose();
   }
 }

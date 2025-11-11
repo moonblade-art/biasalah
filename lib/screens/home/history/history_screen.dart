@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../home/notifications/notification_screen.dart';
-
-import '../../../utils/color_palette.dart';
-import '../../../widgets/back_button.dart';
-import '../../../widgets/page_transition.dart';
+import 'package:intl/intl.dart';
+import '/utils/color_palette.dart';
+import '/utils/trip_history.dart';
+import 'history_vehicle_screen.dart'; // ✅ Nama file yang benar
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -13,252 +12,281 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
-  bool isJourneySelected = true;
+class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late Future<List<Map<String, dynamic>>> _tripsFuture;
 
-  final List<Map<String, String>> journeyHistory = [
-    {"tanggal": "10 Okt 2025", "kegiatan": "Naik sepeda ke kampus", "jarak": "3.2 km"},
-    {"tanggal": "09 Okt 2025", "kegiatan": "Jalan kaki ke kantor", "jarak": "1.5 km"},
-    {"tanggal": "08 Okt 2025", "kegiatan": "Naik bus listrik", "jarak": "7.4 km"},
-    {"tanggal": "07 Okt 2025", "kegiatan": "Naik sepeda ke pasar", "jarak": "2.1 km"},
-    {"tanggal": "06 Okt 2025", "kegiatan": "Carpool bareng teman", "jarak": "8.9 km"},
-    {"tanggal": "05 Okt 2025", "kegiatan": "Naik LRT Batam", "jarak": "12.3 km"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _refreshTrips();
+  }
 
-  final List<Map<String, String>> offsetHistory = [
-    {"tanggal": "10 Okt 2025", "kegiatan": "Donasi pohon mangrove", "jumlah": "Rp 25.000"},
-    {"tanggal": "09 Okt 2025", "kegiatan": "Tanam pohon di Tiban", "jumlah": "Rp 50.000"},
-    {"tanggal": "08 Okt 2025", "kegiatan": "Kompensasi karbon", "jumlah": "Rp 15.000"},
-    {"tanggal": "07 Okt 2025", "kegiatan": "Beli sertifikat hijau", "jumlah": "Rp 30.000"},
-    {"tanggal": "06 Okt 2025", "kegiatan": "Dukung aksi penanaman", "jumlah": "Rp 45.000"},
-    {"tanggal": "05 Okt 2025", "kegiatan": "Donasi program penghijauan", "jumlah": "Rp 60.000"},
-  ];
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _refreshTrips() {
+    setState(() {
+      _tripsFuture = TripHistory.getTrips();
+    });
+  }
+
+
+  String _formatDuration(int seconds) {
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
+    if (h > 0) return "${h}j ${m}m";
+    return "${m} menit";
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.history, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 20),
+          Text(
+            "Belum ada riwayat perjalanan",
+            style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Mulai perjalanan untuk melihat riwayat di sini",
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({required String label, required String value, bool isEmission = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isEmission && double.tryParse(value.split(' ')[0]) == 0
+                ? Colors.green
+                : Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = ColorPalette.primaryColor;
-    final inactiveColor = Colors.grey.shade300;
-
     return Scaffold(
       backgroundColor: ColorPalette.background,
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // CUSTOM HEADER
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 18,
-                left: 16,
-                right: 16,
-                bottom: 18,
-              ),
+              padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
               decoration: BoxDecoration(
                 color: ColorPalette.primaryColor,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black,
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Riwayat",
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none_rounded,
-                        size: 26, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        PageTransitionWidget.createRoute(
-                          const NotificationScreen(),
-                        ),
-                      );
-                    },
+                    "Riwayat Perjalanan",
+                    style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => isJourneySelected = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isJourneySelected ? activeColor : inactiveColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "Riwayat Perjalanan",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isJourneySelected
-                                ? Colors.white
-                                : Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => isJourneySelected = false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: !isJourneySelected
-                              ? activeColor
-                              : inactiveColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "Riwayat Offset",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: !isJourneySelected
-                                ? Colors.white
-                                : Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+            // TAB BAR
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: ColorPalette.primaryColor,
+                labelColor: ColorPalette.primaryColor,
+                unselectedLabelColor: Colors.grey[600],
+                tabs: const [
+                  Tab(text: "Perjalanan"),
+                  Tab(text: "Offset Karbon"),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
-
+            // KONTEN TAB
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ListView.builder(
-                  itemCount: isJourneySelected
-                      ? journeyHistory.length
-                      : offsetHistory.length,
-                  itemBuilder: (context, index) {
-                    final item = isJourneySelected
-                        ? journeyHistory[index]
-                        : offsetHistory[index];
-
-                    return Card(
-                      elevation: 3,
-                      shadowColor: Colors.black26,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      margin: const EdgeInsets.only(bottom: 14),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item["tanggal"] ?? "",
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item["kegiatan"] ?? "",
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              isJourneySelected
-                                  ? "Jarak: ${item["jarak"]}"
-                                  : "Jumlah: ${item["jumlah"]}",
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: ColorPalette.primaryColor,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 18, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    PageTransitionWidget.createRoute(
-                                      Scaffold(
-                                        appBar: AppBar(
-                                          backgroundColor:
-                                              ColorPalette.primaryColor,
-                                          title: const Text("Detail Riwayat"),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Tab 1: Riwayat Perjalanan
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _tripsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: ColorPalette.primaryColor));
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text("Error: ${snapshot.error}"));
+                      }
+                      final trips = snapshot.data ?? [];
+                      final isEmpty = trips.isEmpty;
+                      return RefreshIndicator(
+                        onRefresh: () async => _refreshTrips(),
+                        child: isEmpty
+                            ? _buildEmptyState()
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: trips.length,
+                                itemBuilder: (context, index) {
+                                  final trip = trips[index];
+                                  final title = trip['title'] as String;
+                                  final timestamp = trip['timestamp'] as DateTime;
+                                  final formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(timestamp);
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => TripDetailScreen(trip: trip),
                                         ),
-                                        body: Center(
-                                          child: Text(
-                                            "Detail untuk ${item["kegiatan"]}",
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 16),
+                                      );
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 16),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.05),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 2),
                                           ),
-                                        ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  title,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.black87,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            formattedDate,
+                                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              _buildStatItem(
+                                                label: "Jarak",
+                                                value: "${(trip['distance'] as double).toStringAsFixed(2)} km",
+                                              ),
+                                              _buildStatItem(
+                                                label: "Waktu",
+                                                value: _formatDuration(trip['duration'] as int),
+                                              ),
+                                              _buildStatItem(
+                                                label: "Emisi",
+                                                value: "${(trip['emission'] as double).toStringAsFixed(2)} kg",
+                                                isEmission: true,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   );
                                 },
-                                child: Text(
-                                  "Detail",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
                               ),
-                            )
-                          ],
+                      );
+                    },
+                  ),
+
+                  // Tab 2: Riwayat Offset Karbon
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.eco, size: 60, color: ColorPalette.primaryColor),
+                        const SizedBox(height: 20),
+                        Text(
+                          "Riwayat Offset Karbon",
+                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Text(
+                            "Fitur ini akan menampilkan riwayat kompensasi emisi karbon Anda.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _tripsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData &&
+              snapshot.data!.isNotEmpty) {
+            return FloatingActionButton(
+              backgroundColor: ColorPalette.primaryColor,
+              onPressed: () async {
+                await TripHistory.clearAllTrips();
+                _refreshTrips();
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Riwayat berhasil dihapus")),
+                );
+              },
+              child: const Icon(Icons.delete, color: Colors.white),
+            );
+          }
+          return const SizedBox();
+        },
       ),
     );
   }

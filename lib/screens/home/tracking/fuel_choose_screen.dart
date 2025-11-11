@@ -15,46 +15,70 @@ class FuelChooseSheet extends StatefulWidget {
 class _FuelChooseSheetState extends State<FuelChooseSheet> {
   String? selectedFuel;
   String? selectedCC;
+  String? selectedSize;
 
   late final List<String> fuels;
   late final List<String> ccOptions;
+  late final List<String> sizeOptions;
+
+  String get vehicleType => widget.vehicleType.toLowerCase();
+
+  bool get shouldShowEngineOrSize {
+    if (vehicleType == 'sepeda') return false;
+    if (vehicleType == 'angkutan') return true;
+    return true;
+  }
+
+  bool get isInputComplete {
+    if (selectedFuel == null) return false;
+    if (vehicleType == 'sepeda') return true;
+    if (vehicleType == 'angkutan') return selectedSize != null;
+    return selectedCC != null;
+  }
 
   @override
   void initState() {
     super.initState();
 
-    // 🔹 Tentukan pilihan berdasarkan jenis kendaraan
-    switch (widget.vehicleType.toLowerCase()) {
-      case 'motor':
-        fuels = ['Pertalite', 'Pertamax', 'Listrik'];
-        ccOptions = ['110', '125', '150', '250'];
-        break;
-      case 'mobil':
-        fuels = ['Pertalite', 'Pertamax', 'Solar', 'Listrik'];
-        ccOptions = ['1000', '1500', '2000', '2500', '3000'];
-        break;
-      case 'truk':
-        fuels = ['Solar'];
-        ccOptions = ['2500', '3000', '4000', '6000'];
-        break;
-      default:
-        fuels = ['Pertalite', 'Pertamax'];
-        ccOptions = ['125', '150'];
+    if (vehicleType == 'sepeda') {
+      fuels = ['Listrik'];
+      ccOptions = [];
+      sizeOptions = [];
+    } else if (vehicleType == 'angkutan') {
+      fuels = ['Solar', 'Listrik'];
+      ccOptions = [];
+      sizeOptions = ['Kecil', 'Sedang', 'Besar'];
+    } else if (vehicleType == 'motor') {
+      fuels = ['Pertalite', 'Pertamax', 'Listrik'];
+      ccOptions = ['110', '125', '150', '250'];
+      sizeOptions = [];
+    } else if (vehicleType == 'mobil') {
+      fuels = ['Pertalite', 'Pertamax', 'Solar', 'Listrik'];
+      ccOptions = ['1000', '1500', '2000', '2500', '3000'];
+      sizeOptions = [];
+    } else if (vehicleType == 'truk') {
+      fuels = ['Solar'];
+      ccOptions = ['2500', '3000', '4000', '6000'];
+      sizeOptions = [];
+    } else {
+      fuels = ['Pertalite', 'Pertamax'];
+      ccOptions = ['125', '150'];
+      sizeOptions = [];
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.pop(context), // klik luar sheet = tutup
+      onTap: () => Navigator.pop(context),
       child: Container(
         color: Colors.black54,
         child: GestureDetector(
-          onTap: () {}, // cegah sheet tertutup pas klik isi
+          onTap: () {},
           child: DraggableScrollableSheet(
-            initialChildSize: 0.55,
-            minChildSize: 0.3,
-            maxChildSize: 0.9,
+            initialChildSize: _calculateInitialSize(),
+            minChildSize: 0.25,
+            maxChildSize: 0.85,
             builder: (context, scrollController) {
               return Container(
                 padding: const EdgeInsets.all(20),
@@ -67,12 +91,11 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- Handle Bar ---
                       Center(
                         child: Container(
                           width: 40,
                           height: 4,
-                          margin: const EdgeInsets.only(bottom: 20),
+                          margin: const EdgeInsets.only(bottom: 15),
                           decoration: BoxDecoration(
                             color: Colors.grey[300],
                             borderRadius: BorderRadius.circular(12),
@@ -91,7 +114,6 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
 
                       const SizedBox(height: 16),
 
-                      // --- Fuel Selection ---
                       Text(
                         "Pilih Jenis Bahan Bakar",
                         style: GoogleFonts.poppins(
@@ -99,23 +121,24 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
 
                       Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
+                        alignment: WrapAlignment.center,
+                        spacing: 12,
+                        runSpacing: 12,
                         children: fuels.map((fuel) {
                           final bool isSelected = selectedFuel == fuel;
                           return SizedBox(
-                            width: 100,
+                            width: 105,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: isSelected
                                     ? ColorPalette.primaryColor
                                     : Colors.grey[200],
-                                elevation: 0,
+                                elevation: isSelected ? 2 : 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
                                     color: isSelected
                                         ? ColorPalette.primaryColor
@@ -123,22 +146,25 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                                     width: 1.5,
                                   ),
                                 ),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                               onPressed: () {
-                                setState(() => selectedFuel = fuel);
+                                setState(() {
+                                  selectedFuel = fuel;
+                                  if (vehicleType != 'angkutan') {
+                                    selectedCC = null;
+                                  } else {
+                                    selectedSize = null;
+                                  }
+                                });
                               },
                               child: Text(
                                 fuel,
+                                textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.black87,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
+                                  fontSize: 13.5,
+                                  color: isSelected ? Colors.white : Colors.black87,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -146,73 +172,77 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                         }).toList(),
                       ),
 
-                      const SizedBox(height: 24),
-
-                      // --- CC Selection ---
-                      Text(
-                        "Kapasitas Mesin (cc)",
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                      if (shouldShowEngineOrSize) ...[
+                        const SizedBox(height: 24),
+                        Text(
+                          vehicleType == 'angkutan'
+                              ? "Ukuran Kendaraan"
+                              : "Kapasitas Mesin (cc)",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: ccOptions.map((cc) {
-                          final bool isSelected = selectedCC == cc;
-                          return SizedBox(
-                            width: 100,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isSelected
-                                    ? ColorPalette.primaryColor
-                                    : Colors.grey[200],
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? ColorPalette.primaryColor
-                                        : Colors.grey[300]!,
-                                    width: 1.5,
+                        const SizedBox(height: 12),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: (vehicleType == 'angkutan' ? sizeOptions : ccOptions).map((option) {
+                            final bool isSelected = vehicleType == 'angkutan'
+                                ? selectedSize == option
+                                : selectedCC == option;
+                            return SizedBox(
+                              width: 105,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isSelected
+                                      ? ColorPalette.primaryColor
+                                      : Colors.grey[200],
+                                  elevation: isSelected ? 2 : 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: isSelected
+                                          ? ColorPalette.primaryColor
+                                          : Colors.grey[300]!,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (vehicleType == 'angkutan') {
+                                      selectedSize = option;
+                                    } else {
+                                      selectedCC = option;
+                                    }
+                                  });
+                                },
+                                child: Text(
+                                  vehicleType == 'angkutan' ? option : "$option cc",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13.5,
+                                    color: isSelected ? Colors.white : Colors.black87,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                                   ),
                                 ),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
                               ),
-                              onPressed: () {
-                                setState(() => selectedCC = cc);
-                              },
-                              child: Text(
-                                "$cc cc",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Colors.black87,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
 
                       const SizedBox(height: 30),
 
-                      // --- Start Journey Button ---
                       Center(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: (selectedFuel == null ||
-                                    selectedCC == null)
-                                ? Colors.grey
-                                : ColorPalette.primaryColor,
+                            backgroundColor: isInputComplete
+                                ? ColorPalette.primaryColor
+                                : Colors.grey,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -221,17 +251,22 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                               vertical: 14,
                             ),
                           ),
-                          onPressed: (selectedFuel == null || selectedCC == null)
-                              ? null
-                              : () {
+                          onPressed: isInputComplete
+                              ? () {
                                   Navigator.pop(context);
                                   Navigator.push(
                                     context,
                                     PageTransitionWidget.createRoute(
-                                      const TrackingScreen(),
+                                      TrackingScreen(
+                                        vehicleType: widget.vehicleType,
+                                        fuelType: selectedFuel!,
+                                        cc: selectedCC,
+                                        size: selectedSize,
+                                      ),
                                     ),
                                   );
-                                },
+                                }
+                              : null,
                           child: Text(
                             "Mulai Perjalanan",
                             style: GoogleFonts.poppins(
@@ -251,5 +286,12 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
         ),
       ),
     );
+  }
+
+  double _calculateInitialSize() {
+    if (vehicleType == 'sepeda') return 0.4;
+    if (vehicleType == 'truk') return 0.45;
+    if (vehicleType == 'angkutan') return 0.5;
+    return 0.55;
   }
 }

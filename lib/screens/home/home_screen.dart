@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../home/comunity_screen.dart';
-import '../home/donation_screen.dart';
+import 'donation/donation_screen.dart';
 import '../home/notifications/notification_screen.dart';
 
 import '../../utils/color_palette.dart';

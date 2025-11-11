@@ -21,6 +21,7 @@ dependencies:
   firebase_auth: ^5.0.0
   font_awesome_flutter: ^10.7.0
   shared_preferences: ^2.3.2
+  intl: ^0.20.1
 
   flutter_map: ^6.1.0
   google_maps_flutter: ^2.7.0

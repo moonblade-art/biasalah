@@ -9,7 +9,6 @@ import '/utils/color_palette.dart';
 class VehicleChooseScreen extends StatelessWidget {
   const VehicleChooseScreen({super.key});
 
-  // tombol kendaraan
   Widget _buildVehicleButton({
     required BuildContext context,
     required IconData icon,
@@ -17,7 +16,6 @@ class VehicleChooseScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: () {
-        // 🔥 tampilkan FuelChooseScreen sebagai bottom sheet
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -27,8 +25,7 @@ class VehicleChooseScreen extends StatelessWidget {
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        width: 160,
-        height: 160,
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -47,10 +44,11 @@ class VehicleChooseScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: ColorPalette.primaryColor, size: 70),
-            const SizedBox(height: 10),
+            Icon(icon, color: ColorPalette.primaryColor, size: 48),
+            const SizedBox(height: 8),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -62,144 +60,152 @@ class VehicleChooseScreen extends StatelessWidget {
     );
   }
 
-  // tampilan utama
   @override
   Widget build(BuildContext context) {
+    final vehicles = [
+      {'icon': Icons.motorcycle_rounded, 'label': 'Motor'},
+      {'icon': Icons.directions_car_rounded, 'label': 'Mobil'},
+      {'icon': Icons.directions_bus_rounded, 'label': 'Angkutan'},
+      {'icon': Icons.local_shipping_rounded, 'label': 'Truk'},
+      {'icon': Icons.pedal_bike_rounded, 'label': 'Sepeda'},
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xffF6F8FA),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // HEADER
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                  top: 18, left: 16, right: 16, bottom: 18),
-              decoration: BoxDecoration(
-                color: ColorPalette.primaryColor,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // HEADER
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
+                decoration: BoxDecoration(
+                  color: ColorPalette.primaryColor,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black45,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black45,
-                    blurRadius: 6,
-                    offset: Offset(0, 3),
-                  ),
-                ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Pilih Kendaraan",
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.notifications_none_rounded,
+                        size: 26,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          PageTransitionWidget.createRoute(
+                            const NotificationScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Pilih Kendaraan",
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+
+              const SizedBox(height: 20),
+
+              // DESKRIPSI
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  "Pilih jenis kendaraan kamu untuk menyesuaikan jenis bahan bakar yang sesuai.",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[700],
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      size: 26,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        PageTransitionWidget.createRoute(
-                          const NotificationScreen(),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // INFO BOX
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: ColorPalette.primaryColor),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Setiap jenis kendaraan memiliki kapasitas dan tipe bahan bakar yang berbeda.",
+                          style: GoogleFonts.poppins(fontSize: 13),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // DESKRIPSI
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "Pilih jenis kendaraan kamu untuk menyesuaikan jenis bahan bakar yang sesuai.",
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey[700],
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 30),
 
-            // INFO BOX
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: Offset(0, 3),
-                  ),
-                ],
+              // GRID KENDARAAN — RESPONSIVE
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Hitung lebar maks per item
+                    final itemWidth = 140.0; // ideal untuk 2 kolom
+                    final maxColumns = (constraints.maxWidth / itemWidth).floor();
+                    final columns = maxColumns > 0 ? maxColumns : 1;
+
+                    return GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.9, // lebar:tinggi ≈ 140:155
+                      children: vehicles.map((vehicle) {
+                        return _buildVehicleButton(
+                          context: context,
+                          icon: vehicle['icon'] as IconData,
+                          label: vehicle['label'] as String,
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: ColorPalette.primaryColor),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      "Setiap jenis kendaraan memiliki kapasitas dan tipe bahan bakar yang berbeda.",
-                      style: GoogleFonts.poppins(fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 30),
-
-            // GRID KENDARAAN
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  _buildVehicleButton(
-                      context: context,
-                      icon: Icons.motorcycle_rounded,
-                      label: "Motor"),
-                  _buildVehicleButton(
-                      context: context,
-                      icon: Icons.directions_car_rounded,
-                      label: "Mobil"),
-                  _buildVehicleButton(
-                      context: context,
-                      icon: Icons.directions_bus_rounded,
-                      label: "Angkutan"),
-                  _buildVehicleButton(
-                      context: context,
-                      icon: Icons.local_shipping_rounded,
-                      label: "Truk"),
-                  _buildVehicleButton(
-                      context: context,
-                      icon: Icons.pedal_bike_rounded,
-                      label: "Sepeda"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 60),
-          ],
+              const SizedBox(height: 60), // cukup untuk bottom safe area
+            ],
+          ),
         ),
       ),
     );
