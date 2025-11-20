@@ -12,47 +12,63 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  
+  # UI & Design
   google_fonts: ^6.2.1 
   cupertino_icons: ^1.0.8
   auto_size_text: ^3.0.0
   pin_code_fields: ^8.0.1
+  flutter_svg: ^2.2.1
+  curved_navigation_bar: ^1.0.6
+  animations: ^2.0.11
+  font_awesome_flutter: ^10.7.0
 
+  # Firebase
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
-  font_awesome_flutter: ^10.7.0
+
+  # Storage & Localization
   shared_preferences: ^2.3.2
   intl: ^0.20.1
 
+  # Maps & Location
   flutter_map: ^6.1.0
   google_maps_flutter: ^2.7.0
   google_maps_flutter_web: ^0.5.6
   latlong2: ^0.9.0
   geolocator: ^12.0.0
-  fl_chart: ^0.69.0
   location: ^6.0.2
-  flutter_svg: ^2.2.1
-  url_launcher: ^6.1.10
-  curved_navigation_bar: ^1.0.6
-  animations: ^2.0.11
   flutter_map_cancellable_tile_provider: ^2.0.0
+
+  # Charts
+  fl_chart: ^0.69.0
+
+  # Utilities
+  url_launcher: ^6.1.10
+  http: ^1.1.0  # UNTUK API CALL LOGIN/REGISTER
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
- 
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
+  
   assets:
+    # Icons & Images
     - assets/logo.png
     - assets/nayla.png
-    - assets/awan.svg
-    - assets/Vector.svg
-    - assets/header.svg
     - assets/komunitas1.png
-    - assets/komunitas4.png
-    - assets/komunitas5.png
     - assets/komunitas2.png
     - assets/komunitas3.png
+    - assets/komunitas4.png
+    - assets/komunitas5.png
+    
+    # SVG Assets
+    - assets/awan.svg
+    - assets/vector.svg
+    - assets/header.svg
+    
+    # JSON Data (jika masih dipakai untuk dummy)
     - models/dummy_login.json
-

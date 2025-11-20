@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/color_palette.dart'; // IMPORT COLOR PALETTE
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -20,7 +21,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3E5F44),
+          backgroundColor: ColorPalette.primaryColor, // GUNAKAN COLOR PALETTE
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

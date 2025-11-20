@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       radius: 28,
                       backgroundColor: Colors.white24,
                       child: Text(
-                        currentUser.name.isNotEmpty ? currentUser.name[0].toUpperCase() : '?',
+                        currentUser.email.isNotEmpty ? currentUser.email[0].toUpperCase() : '?',
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           color: Colors.white,

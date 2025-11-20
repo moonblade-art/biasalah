@@ -4,14 +4,13 @@ import 'package:emission_tracker/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import '../../widgets/input_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/curved_container.dart';
 import '../../widgets/back_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
-import '../../navigations/navigations.dart';
+import '../../services/auth_service.dart'; // IMPORT BARU
 import 'forgot_password_page.dart';
 import 'register_page.dart';
 import '../welcome_page.dart';
@@ -26,35 +25,84 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  final AuthService _authService = AuthService(); // TAMBAH INI
   bool isLoading = false;
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final isLoggedIn = await _authService.isLoggedIn();
+    if (isLoggedIn && mounted) {
+      Navigator.of(context).pushReplacement(
+        PageTransitionWidget.createRoute(const Navigations()),
+      );
+    }
+  }
 
   Future<void> _handleLogin() async {
+    // Validasi manual sebelum API call
+    if (_email.text.isEmpty || _password.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email dan password harus diisi'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (!_authService.isValidEmail(_email.text.trim())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Format email tidak valid'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    final String jsonString =
-        await rootBundle.loadString('models/dummy_login.json');
-    final List users = json.decode(jsonString);
-
-    final user = users.firstWhere(
-      (u) => u['email'] == _email.text && u['password'] == _password.text,
-      orElse: () => null,
+    final result = await _authService.login(
+      _email.text.trim(),
+      _password.text,
     );
 
     setState(() => isLoading = false);
 
-    if (user != null && mounted) {
+    if (result['success'] == true) {
+      // Login sukses
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message']),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Navigate to home screen
       Navigator.of(context).pushReplacement(
-        PageTransitionWidget.createRoute( Navigations()),
+        PageTransitionWidget.createRoute(const Navigations()),
       );
     } else {
+      // Login gagal
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Email atau password salah."),
-          backgroundColor: Colors.redAccent,
+        SnackBar(
+          content: Text(result['message']),
+          backgroundColor: Colors.red,
         ),
       );
     }
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
   }
 
   @override
@@ -96,11 +144,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-
           SafeArea(
             child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 320),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 320),
               child: CurvedContainer(
                 curveRadius: 30,
                 backgroundColor: Colors.white,
@@ -120,13 +166,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: "Email",
                       prefixIcon: Icons.email_outlined,
                       controller: _email,
+                      keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     InputField(
                       label: "Password",
                       prefixIcon: Icons.lock_outline,
-                      obscure: true,
+                      obscure: _obscurePassword,
                       controller: _password,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: _togglePasswordVisibility,
+                      ),
                     ),
                     const SizedBox(height: 28),
                     PrimaryButton(
@@ -136,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 10),
                     TextButton(
-                      onPressed: () {
+                      onPressed: isLoading ? null : () {
                         Navigator.of(context).push(
                           PageTransitionWidget.createRoute(
                               const ForgotPasswordPage()),
@@ -148,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
+                      onPressed: isLoading ? null : () {
                         Navigator.of(context).push(
                           PageTransitionWidget.createRoute(
                               const RegisterPage()),
@@ -168,12 +222,19 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Padding(
               padding: const EdgeInsets.only(left: 0, top: 16),
               child: BackButtonWidget(
-              previousPage: const WelcomePage(),
+                previousPage: const WelcomePage(),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
   }
 }

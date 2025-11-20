@@ -58,7 +58,12 @@ class EcoTrackApp extends StatelessWidget {
         '/welcome': (context) => const WelcomePage(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterPage(),
-        '/verify': (context) => const VerifyPage(),
+        '/verify': (context) {
+        // Ambil email dari arguments
+         final arguments = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+         final email = arguments?['email'] ?? '';
+          return VerifyPage(email: email);
+        },
         '/forgot': (context) => const ForgotPasswordPage(),
         '/reset': (context) => const ResetPasswordPage(),
         '/verify-password': (context) => const VerifyPasswordPage(),
