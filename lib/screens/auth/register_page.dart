@@ -111,21 +111,14 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  ColorPalette.background,
-                  ColorPalette.background,
-                  ColorPalette.background,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          color: ColorPalette.background, // Single color - no gradient needed
+        ),
+        child: Stack(
+          children: [
 
           Positioned(
             top: 0,
@@ -256,7 +249,8 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

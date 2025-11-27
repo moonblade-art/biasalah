@@ -206,29 +206,28 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         ? routePoints.first
         : const LatLng(1.0456, 104.0305);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (routePoints.isNotEmpty && mounted) {
-        try {
-          final bounds = LatLngBounds.fromPoints(routePoints);
-          _mapController.fitBounds(
-            bounds,
-            options: const FitBoundsOptions(padding: EdgeInsets.all(50)),
-          );
-        } catch (e) {
-          debugPrint("Error setting map bounds: $e");
+    // Use Future.microtask instead of addPostFrameCallback to prevent rebuild loops
+    if (routePoints.isNotEmpty) {
+      Future.microtask(() {
+        if (mounted) {
+          try {
+            final bounds = LatLngBounds.fromPoints(routePoints);
+            _mapController.fitBounds(
+              bounds,
+              options: const FitBoundsOptions(padding: EdgeInsets.all(50)),
+            );
+          } catch (e) {
+            debugPrint("Error setting map bounds: $e");
+          }
         }
-      }
-    });
+      });
+    }
 
     return Scaffold(
       backgroundColor: ColorPalette.background,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final mapHeight = constraints.maxHeight * 0.6;
-
-            return Column(
-              children: [
+        child: Column(
+          children: [
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
@@ -254,8 +253,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                   ),
                 ),
 
-                SizedBox(
-                  height: mapHeight,
+                Expanded(
+                  flex: 3, // Takes 60% of available space
                   child: FlutterMap(
                     mapController: _mapController,
                     options: MapOptions(
@@ -321,6 +320,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 ),
 
                 Expanded(
+                  flex: 2, // Takes 40% of available space
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                     child: Column(
@@ -367,8 +367,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                   ),
                 ),
               ],
-            );
-          },
         ),
       ),
     );

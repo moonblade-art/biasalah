@@ -19,19 +19,13 @@ import 'screens/home/profile/profile_screen.dart';
 import 'screens/home/donation/donation_screen.dart';
 import 'screens/home/comunity_screen.dart';
 
-import 'screens/home/tracking/tracking_screen.dart';
-import 'screens/home/tracking/fuel_choose_screen.dart';
-import 'screens/home/tracking/vechicle_choose_screen.dart';
 
-import 'screens/home/history/history_vehicle_screen.dart';
 import 'screens/home/history/history_offset_screen.dart';
 
 import 'screens/home/notifications/notification_screen.dart';
 import 'screens/home/notifications/edit_notification_screen.dart';
 
 import 'screens/home/profile/edit_profile_screen.dart';
-
-import 'navigations/navigations.dart';
 
 import 'utils/color_palette.dart';
 
@@ -59,7 +53,7 @@ class EcoTrackApp extends StatelessWidget {
       title: 'EcoTrack',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: GoogleFonts.poppins().fontFamily,
+        fontFamily: 'Poppins', // Use static font family to prevent rebuilds
         scaffoldBackgroundColor: ColorPalette.background,
         colorScheme: ColorScheme.fromSeed(seedColor: ColorPalette.primaryColor),
         useMaterial3: true,
@@ -84,8 +78,8 @@ class EcoTrackApp extends StatelessWidget {
         '/history-offset': (context) => const HistoryOffsetScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/navigations': (context) => const Navigations(),
-        '/edit-profile': (context) => const editProfileScreen(),
-        '/edit-notification': (context) => const editNotificationScreen(),
+        '/edit-profile': (context) => const EditProfileScreen(),
+        '/edit-notification': (context) => const EditNotificationScreen(),
       }
     );
   }
@@ -103,6 +97,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   final SupabaseAuthService _authService = SupabaseAuthService();
   bool _isLoading = true;
   Widget? _targetWidget;
+  bool _hasCheckedAuth = false; // Prevent multiple auth checks
 
   @override
   void initState() {
@@ -111,30 +106,27 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuthState() async {
+    if (_hasCheckedAuth) return; // Prevent multiple calls
+    _hasCheckedAuth = true;
+    
     try {
-      // Add small delay to ensure widget is mounted
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Single auth check without loops
+      final isAuthenticated = _authService.isSignedIn() && _authService.isEmailVerified();
       
-      // Check if user is signed in and email is verified
-      if (_authService.isSignedIn() && _authService.isEmailVerified()) {
-        // User is authenticated, show home
+      if (mounted) {
         setState(() {
-          _targetWidget = const Navigations();
-          _isLoading = false;
-        });
-      } else {
-        // User not authenticated, show welcome
-        setState(() {
-          _targetWidget = const WelcomePage();
+          _targetWidget = isAuthenticated ? const Navigations() : const WelcomePage();
           _isLoading = false;
         });
       }
     } catch (e) {
       // Error checking auth state, show welcome
-      setState(() {
-        _targetWidget = const WelcomePage();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _targetWidget = const WelcomePage();
+          _isLoading = false;
+        });
+      }
     }
   }
 

@@ -5,8 +5,13 @@ class UserProfile {
   final String userId; // Reference to auth.users.id
   final String fullName;
   final String email;
+  final String? phone;
+  final String? address;
+  final String? profilePictureUrl;
   final double emisiOffset;
   final double emisiBelum;
+  final double totalDonations;
+  final int totalTrips;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -15,8 +20,13 @@ class UserProfile {
     required this.userId,
     required this.fullName,
     required this.email,
+    this.phone,
+    this.address,
+    this.profilePictureUrl,
     this.emisiOffset = 0.0,
     this.emisiBelum = 0.0,
+    this.totalDonations = 0.0,
+    this.totalTrips = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -27,8 +37,13 @@ class UserProfile {
       userId: json['user_id'] as String,
       fullName: json['full_name'] as String,
       email: json['email'] as String,
+      phone: json['phone'] as String?,
+      address: json['address'] as String?,
+      profilePictureUrl: json['profile_picture_url'] as String?,
       emisiOffset: (json['emisi_offset'] as num?)?.toDouble() ?? 0.0,
       emisiBelum: (json['emisi_belum'] as num?)?.toDouble() ?? 0.0,
+      totalDonations: (json['total_donations'] as num?)?.toDouble() ?? 0.0,
+      totalTrips: (json['total_trips'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -43,8 +58,13 @@ class UserProfile {
         'user_id': userId,
         'full_name': fullName,
         'email': email,
+        if (phone != null) 'phone': phone,
+        if (address != null) 'address': address,
+        if (profilePictureUrl != null) 'profile_picture_url': profilePictureUrl,
         'emisi_offset': emisiOffset,
         'emisi_belum': emisiBelum,
+        'total_donations': totalDonations,
+        'total_trips': totalTrips,
         if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
         if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
       };
@@ -55,8 +75,13 @@ class UserProfile {
     String? userId,
     String? fullName,
     String? email,
+    String? phone,
+    String? address,
+    String? profilePictureUrl,
     double? emisiOffset,
     double? emisiBelum,
+    double? totalDonations,
+    int? totalTrips,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -65,8 +90,13 @@ class UserProfile {
       userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       emisiOffset: emisiOffset ?? this.emisiOffset,
       emisiBelum: emisiBelum ?? this.emisiBelum,
+      totalDonations: totalDonations ?? this.totalDonations,
+      totalTrips: totalTrips ?? this.totalTrips,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -82,7 +112,7 @@ class UserProfile {
 
   @override
   String toString() {
-    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, email: $email, emisiOffset: $emisiOffset, emisiBelum: $emisiBelum)';
+    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, email: $email, phone: $phone, address: $address, emisiOffset: $emisiOffset, emisiBelum: $emisiBelum, totalDonations: $totalDonations, totalTrips: $totalTrips)';
   }
 }
 

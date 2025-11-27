@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '/utils/color_palette.dart';
 import '/utils/trip_history.dart';
 import 'history_vehicle_screen.dart'; // ✅ Nama file yang benar
+import 'history_offset_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -153,7 +154,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                         child: isEmpty
                             ? _buildEmptyState()
                             : ListView.builder(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Add bottom padding for navigation
                                 itemCount: trips.length,
                                 itemBuilder: (context, index) {
                                   final trip = trips[index];
@@ -238,28 +239,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                   ),
 
                   // Tab 2: Riwayat Offset Karbon
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.eco, size: 60, color: ColorPalette.primaryColor),
-                        const SizedBox(height: 20),
-                        Text(
-                          "Riwayat Offset Karbon",
-                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
-                          child: Text(
-                            "Fitur ini akan menampilkan riwayat kompensasi emisi karbon Anda.",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const HistoryOffsetScreen(),
                 ],
               ),
             ),
