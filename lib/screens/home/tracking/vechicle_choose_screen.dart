@@ -174,36 +174,27 @@ class VehicleChooseScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // GRID KENDARAAN — RESPONSIVE
+              // GRID KENDARAAN — SIMPLIFIED
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Hitung lebar maks per item
-                    final itemWidth = 140.0; // ideal untuk 2 kolom
-                    final maxColumns = (constraints.maxWidth / itemWidth).floor();
-                    final columns = maxColumns > 0 ? maxColumns : 1;
-
-                    return GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: columns,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.9, // lebar:tinggi ≈ 140:155
-                      children: vehicles.map((vehicle) {
-                        return _buildVehicleButton(
-                          context: context,
-                          icon: vehicle['icon'] as IconData,
-                          label: vehicle['label'] as String,
-                        );
-                      }).toList(),
+                child: GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2, // Fixed 2 columns to prevent sizing issues
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.9,
+                  children: vehicles.map((vehicle) {
+                    return _buildVehicleButton(
+                      context: context,
+                      icon: vehicle['icon'] as IconData,
+                      label: vehicle['label'] as String,
                     );
-                  },
+                  }).toList(),
                 ),
               ),
 
-              const SizedBox(height: 60), // cukup untuk bottom safe area
+              const SizedBox(height: 120), // Add more padding for navigation
             ],
           ),
         ),

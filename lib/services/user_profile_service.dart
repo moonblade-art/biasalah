@@ -3,6 +3,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 
 import '../models/user_model.dart';
 import '../config/supabase_config.dart';
@@ -51,33 +53,47 @@ class UserProfileService {
   /// Get user profile by user ID
   Future<UserProfile?> getProfile(String userId) async {
     try {
-      // Try to get from cache first
+      // Simple cache check without timeout to prevent thrashing
       final cachedProfile = await _getCachedProfile();
       if (cachedProfile != null && cachedProfile.userId == userId) {
-        return cachedProfile;
+        // Check if cache is recent (less than 5 minutes old)
+        final prefs = await SharedPreferences.getInstance();
+        final cacheTime = prefs.getString('profile_cache_time');
+        if (cacheTime != null) {
+          final cacheDateTime = DateTime.parse(cacheTime);
+          final now = DateTime.now();
+          if (now.difference(cacheDateTime).inMinutes < 5) {
+            return cachedProfile;
+          }
+        }
       }
       
-      // Fetch from database
+      // Fetch from database with timeout
       final response = await _supabase
           .from(SupabaseConfig.usersTable)
           .select()
           .eq('user_id', userId)
-          .maybeSingle();
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10));
       
       if (response == null) {
-        return null;
+        return cachedProfile; // Return cached if available, even if old
       }
       
       final profile = UserProfile.fromJson(response);
       
-      // Cache the profile
-      await _cacheProfile(profile);
+      // Cache the profile asynchronously
+      unawaited(_cacheProfile(profile));
       
       return profile;
-    } on PostgrestException catch (e) {
-      throw app_auth.AppAuthException('Gagal mengambil profil: ${e.message}', 'get_profile_failed');
     } catch (e) {
-      throw app_auth.AppAuthException('Gagal mengambil profil: ${e.toString()}', 'get_profile_failed');
+      print('Error in getProfile: ${e.toString()}');
+      // Return cached profile if available, even on error
+      try {
+        return await _getCachedProfile();
+      } catch (cacheError) {
+        return null;
+      }
     }
   }
   
@@ -86,12 +102,18 @@ class UserProfileService {
     required String userId,
     String? fullName,
     String? email,
+    String? phone,
+    String? address,
+    String? profilePictureUrl,
   }) async {
     try {
       final updateData = <String, dynamic>{};
       
       if (fullName != null) updateData['full_name'] = fullName;
       if (email != null) updateData['email'] = email;
+      if (phone != null) updateData['phone'] = phone;
+      if (address != null) updateData['address'] = address;
+      if (profilePictureUrl != null) updateData['profile_picture_url'] = profilePictureUrl;
       
       if (updateData.isEmpty) {
         throw app_auth.AppAuthException('Tidak ada data yang diupdate', 'no_update_data');
@@ -114,6 +136,26 @@ class UserProfileService {
       throw app_auth.AppAuthException('Gagal mengupdate profil: ${e.message}', 'update_profile_failed');
     } catch (e) {
       throw app_auth.AppAuthException('Gagal mengupdate profil: ${e.toString()}', 'update_profile_failed');
+    }
+  }
+
+  /// Upload profile picture to Supabase Storage
+  Future<String> uploadProfilePicture(String userId, File imageFile) async {
+    try {
+      final fileName = 'profile_$userId.jpg';
+      final filePath = 'profiles/$fileName';
+      
+      await _supabase.storage
+          .from('avatars')
+          .upload(filePath, imageFile, fileOptions: const FileOptions(upsert: true));
+      
+      final publicUrl = _supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+      
+      return publicUrl;
+    } catch (e) {
+      throw app_auth.AppAuthException('Gagal mengupload gambar: ${e.toString()}', 'upload_failed');
     }
   }
   
@@ -208,7 +250,7 @@ class UserProfileService {
       await prefs.setString('user_profile', profileJson);
       await prefs.setString('profile_cache_time', DateTime.now().toIso8601String());
     } catch (e) {
-      // Ignore cache errors
+      // Silently ignore cache errors to prevent blocking
     }
   }
   
@@ -217,16 +259,8 @@ class UserProfileService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final profileJson = prefs.getString('user_profile');
-      final cacheTime = prefs.getString('profile_cache_time');
       
-      if (profileJson == null || cacheTime == null) return null;
-      
-      // Check if cache is still valid (1 hour)
-      final cacheDateTime = DateTime.parse(cacheTime);
-      final now = DateTime.now();
-      if (now.difference(cacheDateTime).inHours > 1) {
-        return null; // Cache expired
-      }
+      if (profileJson == null) return null;
       
       final profileData = json.decode(profileJson) as Map<String, dynamic>;
       return UserProfile.fromJson(profileData);
