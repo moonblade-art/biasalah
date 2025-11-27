@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.push(
                           context,
                           PageTransitionWidget.createRoute(
-                            const editProfileScreen(),
+                            const EditProfilePage(),
                           ),
                         );
                       },

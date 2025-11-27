@@ -69,7 +69,7 @@ class EcoTrackApp extends StatelessWidget {
         '/history-offset': (context) => const HistoryOffsetScreen(),
         '/notifications': (context) => const NotificationScreen(),
         '/navigations': (context) => const Navigations(),
-        '/edit-profile': (context) => const editProfileScreen(),
+        '/edit-profile': (context) => const EditProfilePage(),
         '/edit-notification': (context) => const editNotificationScreen(),
       }
     );
