@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'config/supabase_config.dart';
+import 'services/supabase_auth_service.dart';
 import 'screens/welcome_page.dart';
+import 'navigations/navigations.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_page.dart';
@@ -31,9 +35,20 @@ import 'navigations/navigations.dart';
 
 import 'utils/color_palette.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
+  );
+  
   runApp(const EcoTrackApp());
 }
+
+// Global Supabase client instance
+final supabase = Supabase.instance.client;
 
 class EcoTrackApp extends StatelessWidget {
   const EcoTrackApp({super.key});
@@ -50,8 +65,8 @@ class EcoTrackApp extends StatelessWidget {
         useMaterial3: true,
       ),
 
-      // ✅ Halaman pertama saat app dibuka
-      initialRoute: '/welcome',
+      // Check authentication state on startup
+      home: const AuthWrapper(),
 
       // 🗺️ Semua rute halaman
       routes: {
@@ -73,5 +88,67 @@ class EcoTrackApp extends StatelessWidget {
         '/edit-notification': (context) => const editNotificationScreen(),
       }
     );
+  }
+}
+
+// Auth wrapper to check authentication state on startup
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  final SupabaseAuthService _authService = SupabaseAuthService();
+  bool _isLoading = true;
+  Widget? _targetWidget;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthState();
+  }
+
+  Future<void> _checkAuthState() async {
+    try {
+      // Add small delay to ensure widget is mounted
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Check if user is signed in and email is verified
+      if (_authService.isSignedIn() && _authService.isEmailVerified()) {
+        // User is authenticated, show home
+        setState(() {
+          _targetWidget = const Navigations();
+          _isLoading = false;
+        });
+      } else {
+        // User not authenticated, show welcome
+        setState(() {
+          _targetWidget = const WelcomePage();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // Error checking auth state, show welcome
+      setState(() {
+        _targetWidget = const WelcomePage();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: ColorPalette.background,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    return _targetWidget ?? const WelcomePage();
   }
 }

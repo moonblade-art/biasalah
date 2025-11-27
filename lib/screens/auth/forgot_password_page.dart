@@ -7,6 +7,8 @@ import '../../widgets/back_button.dart';
 import '../../widgets/curved_container.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
+import '../../services/supabase_auth_service.dart';
+import '../../services/auth_exception.dart' as app_auth;
 import 'login_screen.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
@@ -18,11 +20,65 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _email = TextEditingController();
+  final SupabaseAuthService _authService = SupabaseAuthService();
+  
+  bool _isLoading = false;
+  String? _errorMessage;
+  bool _emailSent = false;
 
   @override
   void dispose() {
     _email.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleResetPassword() async {
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    // Validate email
+    if (_email.text.trim().isEmpty) {
+      _showError('Email harus diisi');
+      return;
+    }
+
+    if (!_email.text.contains('@')) {
+      _showError('Format email tidak valid');
+      return;
+    }
+
+    try {
+      await _authService.resetPassword(_email.text.trim());
+      
+      setState(() {
+        _isLoading = false;
+        _emailSent = true;
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email reset password telah dikirim. Silakan cek email Anda.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } on app_auth.AppAuthException catch (e) {
+      _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+    } catch (e) {
+      _showError('Gagal mengirim email reset. Silakan coba lagi.');
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -88,13 +144,75 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       prefixIcon: Icons.email_outlined,
                       controller: _email,
                     ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (_emailSent) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle_outline, color: Colors.green.shade600, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Email reset password telah dikirim. Silakan cek email Anda dan ikuti instruksi untuk reset password.',
+                                style: TextStyle(
+                                  color: Colors.green.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 28),
-                    PrimaryButton(
-                      text: "Kirim Kode Verifikasi",
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/verify-password');
-                      },
-                    ),
+                    if (!_emailSent)
+                      PrimaryButton(
+                        text: "Kirim Email Reset",
+                        isLoading: _isLoading,
+                        onPressed: _isLoading ? null : _handleResetPassword,
+                      )
+                    else
+                      PrimaryButton(
+                        text: "Kirim Ulang Email",
+                        onPressed: () {
+                          setState(() {
+                            _emailSent = false;
+                            _errorMessage = null;
+                          });
+                        },
+                      ),
                     const SizedBox(height: 10),
                     Center(
                       child: TextButton(

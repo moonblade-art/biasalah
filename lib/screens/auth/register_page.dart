@@ -7,7 +7,11 @@ import '../../widgets/curved_container.dart';
 import '../../widgets/back_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
+import '../../services/supabase_auth_service.dart';
+import '../../services/user_profile_service.dart';
+import '../../services/auth_exception.dart' as app_auth;
 import 'login_screen.dart';
+import 'verify_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,6 +24,89 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _name = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  final TextEditingController _confirmPassword = TextEditingController();
+  
+  final SupabaseAuthService _authService = SupabaseAuthService();
+  final UserProfileService _profileService = UserProfileService();
+  
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _password.dispose();
+    _confirmPassword.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    // Clear previous error
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    // Validate input
+    if (_name.text.trim().isEmpty) {
+      _showError('Nama lengkap harus diisi');
+      return;
+    }
+
+    if (_email.text.trim().isEmpty) {
+      _showError('Email harus diisi');
+      return;
+    }
+
+    if (_password.text.length < 6) {
+      _showError('Password minimal 6 karakter');
+      return;
+    }
+
+    if (_password.text != _confirmPassword.text) {
+      _showError('Konfirmasi password tidak sama');
+      return;
+    }
+
+    try {
+      // Register user with Supabase Auth
+      final response = await _authService.signUp(
+        email: _email.text.trim(),
+        password: _password.text,
+        fullName: _name.text.trim(),
+      );
+
+      if (response.user != null) {
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registrasi berhasil! Silakan cek email untuk verifikasi.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          // Navigate to verify page
+          Navigator.of(context).pushReplacement(
+            PageTransitionWidget.createRoute(const VerifyPage()),
+          );
+        }
+      }
+    } on app_auth.AppAuthException catch (e) {
+      _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+    } catch (e) {
+      _showError('Terjadi kesalahan. Silakan coba lagi.');
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,14 +195,39 @@ class _RegisterPageState extends State<RegisterPage> {
                       label: "Konfirmasi Password",
                       prefixIcon: Icons.lock_outline,
                       obscure: true,
-                      controller: _password,
+                      controller: _confirmPassword,
                     ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 28),
                     PrimaryButton(
                       text: "Daftar",
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/verify');
-                      },
+                      isLoading: _isLoading,
+                      onPressed: _isLoading ? null : _handleRegister,
                     ),
                     const SizedBox(height: 10),
                     TextButton(

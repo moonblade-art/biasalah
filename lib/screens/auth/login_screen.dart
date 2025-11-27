@@ -1,10 +1,6 @@
-import 'dart:convert';
-import 'package:emission_tracker/navigations/navigations.dart';
-import 'package:emission_tracker/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import '../../widgets/input_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/curved_container.dart';
@@ -12,8 +8,12 @@ import '../../widgets/back_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
 import '../../navigations/navigations.dart';
+import '../../services/supabase_auth_service.dart';
+import '../../services/user_profile_service.dart';
+import '../../services/auth_exception.dart' as app_auth;
 import 'forgot_password_page.dart';
 import 'register_page.dart';
+import 'verify_page.dart';
 import '../welcome_page.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -26,35 +26,125 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
-  bool isLoading = false;
+  
+  final SupabaseAuthService _authService = SupabaseAuthService();
+  final UserProfileService _profileService = UserProfileService();
+  
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleLogin() async {
-    setState(() => isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Clear previous error
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
 
-    final String jsonString =
-        await rootBundle.loadString('models/dummy_login.json');
-    final List users = json.decode(jsonString);
-
-    final user = users.firstWhere(
-      (u) => u['email'] == _email.text && u['password'] == _password.text,
-      orElse: () => null,
-    );
-
-    setState(() => isLoading = false);
-
-    if (user != null && mounted) {
-      Navigator.of(context).pushReplacement(
-        PageTransitionWidget.createRoute( Navigations()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Email atau password salah."),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+    // Validate input
+    if (_email.text.trim().isEmpty) {
+      _showError('Email harus diisi');
+      return;
     }
+
+    if (_password.text.isEmpty) {
+      _showError('Password harus diisi');
+      return;
+    }
+
+    try {
+      // Sign in with Supabase
+      final response = await _authService.signIn(
+        email: _email.text.trim(),
+        password: _password.text,
+      );
+
+      if (response.user != null) {
+        // Check if email is verified
+        if (!_authService.isEmailVerified()) {
+          _showEmailNotVerifiedDialog();
+          return;
+        }
+
+        // Try to get or create user profile
+        await _handleUserProfile(response.user!.id);
+
+        // Navigate to home
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            PageTransitionWidget.createRoute(const Navigations()),
+          );
+        }
+      }
+    } on app_auth.AppAuthException catch (e) {
+      _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+    } catch (e) {
+      _showError('Terjadi kesalahan. Silakan coba lagi.');
+    }
+  }
+
+  Future<void> _handleUserProfile(String userId) async {
+    try {
+      // Try to get existing profile
+      var profile = await _profileService.getProfile(userId);
+      
+      if (profile == null) {
+        // Create profile if doesn't exist (for users registered before profile system)
+        final user = _authService.getCurrentUser();
+        if (user != null) {
+          profile = await _profileService.createProfile(
+            userId: userId,
+            fullName: user.userMetadata?['full_name'] ?? 'User',
+            email: user.email ?? '',
+          );
+        }
+      }
+    } catch (e) {
+      // Profile creation/fetch failed, but allow login to continue
+      print('Profile error: $e');
+    }
+  }
+
+  void _showEmailNotVerifiedDialog() {
+    setState(() => _isLoading = false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Belum Diverifikasi'),
+        content: const Text(
+          'Silakan cek email Anda dan klik link verifikasi sebelum login.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                PageTransitionWidget.createRoute(const VerifyPage()),
+              );
+            },
+            child: const Text('Ke Halaman Verifikasi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -128,11 +218,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscure: true,
                       controller: _password,
                     ),
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 28),
                     PrimaryButton(
                       text: "Masuk",
-                      isLoading: isLoading,
-                      onPressed: _handleLogin,
+                      isLoading: _isLoading,
+                      onPressed: _isLoading ? null : _handleLogin,
                     ),
                     const SizedBox(height: 10),
                     TextButton(

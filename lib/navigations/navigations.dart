@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/animation.dart';
-import 'package:animations/animations.dart'; // ✅ Tambahkan ini
-
+import 'package:animations/animations.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/home/profile/profile_screen.dart';
 import '../screens/home/donation/donation_screen.dart';

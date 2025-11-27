@@ -1,17 +1,19 @@
 import 'dart:async';
 
-import 'package:emission_tracker/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../utils/color_palette.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../widgets/back_button.dart';
 import '../../widgets/curved_container.dart';
-import '../home/home_screen.dart';
+import '../../services/supabase_auth_service.dart';
+import '../../services/user_profile_service.dart';
+import '../../services/auth_exception.dart' as app_auth;
+import 'login_screen.dart';
 import 'register_page.dart';
 
 class VerifyPage extends StatefulWidget {
@@ -22,35 +24,149 @@ class VerifyPage extends StatefulWidget {
 }
 
 class _VerifyPageState extends State<VerifyPage> {
-  final TextEditingController codeController = TextEditingController();
-  bool isResending = false;
-  int countdown = 0;
-  Timer? timer;
+  final SupabaseAuthService _authService = SupabaseAuthService();
+  final UserProfileService _profileService = UserProfileService();
+  
+  bool _isResending = false;
+  bool _isCheckingVerification = false;
+  int _countdown = 0;
+  Timer? _timer;
+  Timer? _checkTimer;
+  String? _userEmail;
+  String? _errorMessage;
 
-  void resendCode() {
-    if (isResending) return;
+  @override
+  void initState() {
+    super.initState();
+    _getUserEmail();
+    _startPeriodicCheck();
+  }
+
+  void _getUserEmail() async {
+    final user = _authService.getCurrentUser();
+    if (user != null) {
+      setState(() {
+        _userEmail = user.email;
+      });
+    } else {
+      // Try to get from pending data
+      final pendingData = await _authService.getPendingUserData();
+      if (pendingData != null) {
+        setState(() {
+          _userEmail = pendingData['email'];
+        });
+      }
+    }
+  }
+
+  void _startPeriodicCheck() {
+    // Check verification status every 3 seconds
+    _checkTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _checkVerificationStatus();
+    });
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    if (_isCheckingVerification) return;
+    
+    setState(() => _isCheckingVerification = true);
+    
+    try {
+      // Refresh session to get latest user data
+      await Supabase.instance.client.auth.refreshSession();
+      
+      if (_authService.isEmailVerified()) {
+        // Email is verified, create profile and navigate
+        await _handleVerifiedUser();
+      }
+    } catch (e) {
+      // Ignore errors during periodic check
+    } finally {
+      setState(() => _isCheckingVerification = false);
+    }
+  }
+
+  Future<void> _handleVerifiedUser() async {
+    try {
+      _checkTimer?.cancel();
+      
+      final user = _authService.getCurrentUser();
+      if (user != null) {
+        // Try to create profile
+        final pendingData = await _authService.getPendingUserData();
+        if (pendingData != null) {
+          await _profileService.createProfile(
+            userId: user.id,
+            fullName: pendingData['fullName']!,
+            email: pendingData['email']!,
+          );
+          await _authService.clearPendingUserData();
+        }
+
+        // Show success and navigate
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email berhasil diverifikasi! Silakan login.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.of(context).pushReplacement(
+            PageTransitionWidget.createRoute(const LoginScreen()),
+          );
+        }
+      }
+    } catch (e) {
+      // Profile creation failed, but verification succeeded
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          PageTransitionWidget.createRoute(const LoginScreen()),
+        );
+      }
+    }
+  }
+
+  Future<void> _resendVerification() async {
+    if (_isResending || _userEmail == null) return;
 
     setState(() {
-      isResending = true;
-      countdown = 60; 
+      _isResending = true;
+      _countdown = 60;
+      _errorMessage = null;
     });
-    Future.delayed(const Duration(seconds: 2), () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Kode verifikasi baru telah dikirim ke email Anda."),
-          backgroundColor: Colors.green,
-        ),
-      );
-    });
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (countdown == 0) {
+
+    try {
+      await _authService.resendEmailConfirmation(_userEmail!);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Email verifikasi baru telah dikirim."),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on app_auth.AppAuthException catch (e) {
+      setState(() {
+        _errorMessage = app_auth.AppAuthException.getUserFriendlyMessage(e.code);
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Gagal mengirim ulang email verifikasi.';
+      });
+    }
+
+    // Start countdown
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown == 0) {
         setState(() {
-          isResending = false;
+          _isResending = false;
           timer.cancel();
         });
       } else {
         setState(() {
-          countdown--;
+          _countdown--;
         });
       }
     });
@@ -58,8 +174,8 @@ class _VerifyPageState extends State<VerifyPage> {
 
   @override
   void dispose() {
-    codeController.dispose();
-    timer?.cancel();
+    _timer?.cancel();
+    _checkTimer?.cancel();
     super.dispose();
   }
 
@@ -107,7 +223,7 @@ class _VerifyPageState extends State<VerifyPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Verifikasi Kode',
+                        'Verifikasi Email',
                         style: GoogleFonts.poppins(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -116,52 +232,114 @@ class _VerifyPageState extends State<VerifyPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Masukkan kode verifikasi yang telah dikirim ke email Anda.',
+                        'Kami telah mengirim link verifikasi ke email Anda${_userEmail != null ? ' ($_userEmail)' : ''}. Silakan cek email dan klik link verifikasi.',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: Colors.grey[600],
                         ),
                       ),
-                      const SizedBox(height: 30),
-                      PinCodeTextField(
-                        appContext: context,
-                        controller: codeController,
-                        length: 6,
-                        onChanged: (value) {},
-                        cursorColor: ColorPalette.primaryColor,
-                        animationType: AnimationType.scale,
-                        pinTheme: PinTheme(
-                          shape: PinCodeFieldShape.box,
+                      const SizedBox(height: 20),
+                      
+                      // Status indicator
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(12),
-                          fieldHeight: 50,
-                          fieldWidth: 45,
-                          activeColor: ColorPalette.primaryColor,
-                          selectedColor: ColorPalette.primaryColor,
-                          inactiveColor: Colors.grey[300]!,
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            if (_isCheckingVerification)
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            else
+                              Icon(Icons.email_outlined, color: Colors.blue.shade600),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _isCheckingVerification
+                                    ? 'Memeriksa status verifikasi...'
+                                    : 'Menunggu verifikasi email. Halaman akan otomatis berpindah setelah email diverifikasi.',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                    color: Colors.red.shade600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 30),
+                      
+                      // Manual check button
                       PrimaryButton(
-                        text: "Verifikasi Sekarang",
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            PageTransitionWidget.createRoute(const LoginScreen()),
-                          );
-                        },
+                        text: "Cek Status Verifikasi",
+                        isLoading: _isCheckingVerification,
+                        onPressed: _isCheckingVerification ? null : _checkVerificationStatus,
                       ),
 
                       const SizedBox(height: 16),
                       Center(
                         child: TextButton(
-                          onPressed: isResending ? null : resendCode,
+                          onPressed: _isResending ? null : _resendVerification,
                           child: Text(
-                            isResending
-                                ? "Kirim ulang dalam $countdown dtk"
-                                : "Kirim ulang kode",
+                            _isResending
+                                ? "Kirim ulang dalam $_countdown dtk"
+                                : "Kirim ulang email verifikasi",
                             style: GoogleFonts.poppins(
-                              color: isResending
+                              color: _isResending
                                   ? Colors.grey
                                   : ColorPalette.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                              PageTransitionWidget.createRoute(const LoginScreen()),
+                            );
+                          },
+                          child: Text(
+                            "Kembali ke Login",
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[600],
                               fontWeight: FontWeight.w500,
                             ),
                           ),
