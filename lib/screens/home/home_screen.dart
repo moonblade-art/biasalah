@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../home/comunity_screen.dart';
+import 'community/comunity_screen.dart';
 import 'donation/donation_screen.dart';
 import '../home/notifications/notification_screen.dart';
+import '/navigations/navigations.dart';
 
 import '../../models/user_model.dart';
 import '../../models/community_model.dart';
@@ -16,6 +17,8 @@ import '../../utils/color_palette.dart';
 import '../../widgets/curved_container.dart';
 import '../../widgets/page_transition.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/safe_circle_avatar.dart';
+import '../../utils/color_palette.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -159,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 24, bottom: 100),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -172,80 +175,97 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Selamat datang,',
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              _userProfile?.fullName ?? "User",
-                              style: GoogleFonts.poppins(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
 
-                        Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.notifications_none_outlined,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                              onPressed: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  PageTransitionWidget.createRoute(
-                                    const NotificationScreen(),
-                                  ),
-                                );
-                                // Only refresh if needed and widget is still mounted
-                                if (mounted && result == true) {
-                                  _loadUserData();
-                                }
-                              },
-                            ),
-                            if (_unreadNotificationCount > 0)
-                              Positioned(
-                                right: 8,
-                                top: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    _unreadNotificationCount > 99 ? '99+' : _unreadNotificationCount.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+                      Row(
+                        children: [
+                          SafeCircleAvatar(
+                            radius: 40,
+                            imageUrl: _userProfile?.profilePictureUrl,
+                            fallbackText: _userProfile?.fullName,
+                            backgroundColor: Colors.white24,
+                          ),
+
+                          const SizedBox(width: 14),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Selamat datang,',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  color: Colors.white,
                                 ),
                               ),
-                          ],
-                        ),
-                      ],
-                    ),
+                              Text(
+                                _userProfile?.fullName ?? "User",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      Stack(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.notifications_none_outlined,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                PageTransitionWidget.createRoute(
+                                  const NotificationScreen(),
+                                ),
+                              );
+                              if (mounted && result == true) {
+                                _loadUserData();
+                              }
+                            },
+                          ),
+
+                          if (_unreadNotificationCount > 0)
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  _unreadNotificationCount > 99
+                                      ? '99+'
+                                      : _unreadNotificationCount.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                   ),
                 ),
 
@@ -295,17 +315,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: 40,
                           child: PrimaryButton(
                             text: "Donasi Offset",
-                            onPressed: () async {
-                              final result = await Navigator.push(
+                            onPressed: () {
+                              Navigator.pushReplacement(
                                 context,
-                                PageTransitionWidget.createRoute(
-                                  const DonationScreen(),
+                                MaterialPageRoute(
+                                  builder: (_) => Navigations(
+                                    initialPage: 3,
+                                  ),
                                 ),
                               );
-                              // Only refresh if needed and widget is still mounted
-                              if (mounted && result == true) {
-                                _loadUserData();
-                              }
                             },
                           ),
                         ),
@@ -383,7 +401,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               margin: const EdgeInsets.only(right: 16),
                               width: 280, // Reduced width for better fit
                               decoration: BoxDecoration(
-                                color: ColorPalette.background,
+                                color: Colors.white38,
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(

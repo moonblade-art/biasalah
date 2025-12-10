@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
@@ -17,31 +16,31 @@ import 'screens/auth/verfy_password_page.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/home/profile/profile_screen.dart';
 import 'screens/home/donation/donation_screen.dart';
-import 'screens/home/comunity_screen.dart';
-
-
+import 'screens/home/community/comunity_screen.dart';
 import 'screens/home/history/history_offset_screen.dart';
-
 import 'screens/home/notifications/notification_screen.dart';
 import 'screens/home/notifications/edit_notification_screen.dart';
-
 import 'screens/home/profile/edit_profile_screen.dart';
 
 import 'utils/color_palette.dart';
+import 'utils/mouse_tracker_fix.dart';
+import 'widgets/page_transition.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Supabase
+
+  // Fix mouse tracker
+  MouseTrackerErrorHandler.initialize();
+
+  // Init Supabase
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
     anonKey: SupabaseConfig.supabaseAnonKey,
   );
-  
+
   runApp(const EcoTrackApp());
 }
 
-// Global Supabase client instance
 final supabase = Supabase.instance.client;
 
 class EcoTrackApp extends StatelessWidget {
@@ -53,39 +52,89 @@ class EcoTrackApp extends StatelessWidget {
       title: 'EcoTrack',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: 'Poppins', // Use static font family to prevent rebuilds
+        fontFamily: 'Poppins',
         scaffoldBackgroundColor: ColorPalette.background,
         colorScheme: ColorScheme.fromSeed(seedColor: ColorPalette.primaryColor),
         useMaterial3: true,
       ),
 
-      // Check authentication state on startup
+      // Handle global errors
+      builder: (context, child) {
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          return Scaffold(
+            backgroundColor: ColorPalette.background,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Terjadi kesalahan aplikasi',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/home',
+                        (route) => false,
+                      );
+                    },
+                    child: const Text('Restart'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        };
+        return child ?? const SizedBox.shrink();
+      },
+
+      // Halaman pertama
       home: const AuthWrapper(),
 
-      // 🗺️ Semua rute halaman
+      // Semua route yang tidak pakai parameter
       routes: {
         '/welcome': (context) => const WelcomePage(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterPage(),
         '/verify': (context) => const VerifyPage(),
         '/forgot': (context) => const ForgotPasswordPage(),
-        '/reset': (context) => const ResetPasswordPage(),
-        '/verify-password': (context) => const VerifyPasswordPage(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/donation': (context) => const DonationScreen(),
         '/comunity': (context) => const ComunityScreen(),
         '/history-offset': (context) => const HistoryOffsetScreen(),
         '/notifications': (context) => const NotificationScreen(),
-        '/navigations': (context) => const Navigations(),
+        '/navigations': (context) => Navigations(),
         '/edit-profile': (context) => const EditProfileScreen(),
         '/edit-notification': (context) => const EditNotificationScreen(),
-      }
+      },
+
+      // Routes yang butuh parameter dinamis (email)
+      onGenerateRoute: (settings) {
+        if (settings.name == '/reset') {
+          final email = settings.arguments as String;
+          return PageTransitionWidget.createRoute(
+            ResetPasswordPage(email: email),
+          );
+        }
+
+        if (settings.name == '/verify-password') {
+          final email = settings.arguments as String;
+          return PageTransitionWidget.createRoute(
+            VerifyPasswordPage(email: email),
+          );
+        }
+
+        return null;
+      },
     );
   }
 }
 
-// Auth wrapper to check authentication state on startup
+// Wrapper untuk cek login
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
@@ -97,7 +146,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
   final SupabaseAuthService _authService = SupabaseAuthService();
   bool _isLoading = true;
   Widget? _targetWidget;
-  bool _hasCheckedAuth = false; // Prevent multiple auth checks
 
   @override
   void initState() {
@@ -106,27 +154,19 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuthState() async {
-    if (_hasCheckedAuth) return; // Prevent multiple calls
-    _hasCheckedAuth = true;
-    
     try {
-      // Single auth check without loops
-      final isAuthenticated = _authService.isSignedIn() && _authService.isEmailVerified();
-      
-      if (mounted) {
-        setState(() {
-          _targetWidget = isAuthenticated ? const Navigations() : const WelcomePage();
-          _isLoading = false;
-        });
-      }
+      final isAuthenticated = _authService.isSignedIn() &&
+          _authService.isEmailVerified();
+
+      setState(() {
+        _targetWidget = isAuthenticated ? Navigations() : const WelcomePage();
+        _isLoading = false;
+      });
     } catch (e) {
-      // Error checking auth state, show welcome
-      if (mounted) {
-        setState(() {
-          _targetWidget = const WelcomePage();
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _targetWidget = const WelcomePage();
+        _isLoading = false;
+      });
     }
   }
 
@@ -135,12 +175,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: ColorPalette.background,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
-    
+
     return _targetWidget ?? const WelcomePage();
   }
 }

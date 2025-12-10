@@ -4,8 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../navigations/navigations.dart';
+
 import '../../../models/community_model.dart';
-import '../../../models/donation_model.dart';
 import '../../../models/user_model.dart';
 import '../../../services/community_service.dart';
 import '../../../services/donation_service.dart';
@@ -17,7 +18,9 @@ import '../../../widgets/page_transition.dart';
 import 'donation_history_screen.dart';
 
 class DonationScreen extends StatefulWidget {
-  const DonationScreen({super.key});
+  final Community? selectedCommunity;
+  
+  const DonationScreen({super.key, this.selectedCommunity});
 
   @override
   State<DonationScreen> createState() => _DonationScreenState();
@@ -34,6 +37,7 @@ class _DonationScreenState extends State<DonationScreen> {
   
   bool _isLoading = true;
   bool _isCreatingDonation = false;
+  bool _showCommunityList = false;
   String? _errorMessage;
 
   // Donation form
@@ -48,6 +52,7 @@ class _DonationScreenState extends State<DonationScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedCommunity = widget.selectedCommunity;
     _loadData();
   }
 
@@ -96,6 +101,7 @@ class _DonationScreenState extends State<DonationScreen> {
   void _selectCommunity(Community community) {
     setState(() {
       _selectedCommunity = community;
+      _showCommunityList = false;
       _calculateDonationAmount();
     });
   }
@@ -156,11 +162,41 @@ class _DonationScreenState extends State<DonationScreen> {
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       );
 
-      // Open payment URL if available
+      // Handle payment URL
       if (donation.paymentUrl != null) {
-        final uri = Uri.parse(donation.paymentUrl!);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        // Show payment mode dialog
+        if (mounted) {
+          final shouldSimulate = await _showPaymentModeDialog();
+          if (shouldSimulate) {
+            // Simulate successful payment for testing
+            await _donationService.simulateSuccessfulPayment(donation.id);
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Pembayaran berhasil disimulasikan untuk testing!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } else {
+            // Open real Midtrans payment gateway
+            final uri = Uri.parse(donation.paymentUrl!);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+              
+              // Show info about payment process
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Silakan selesaikan pembayaran di browser. Status akan diupdate otomatis.'),
+                    backgroundColor: Colors.blue,
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              }
+            }
+          }
         }
       }
 
@@ -185,36 +221,98 @@ class _DonationScreenState extends State<DonationScreen> {
     });
   }
 
+  Future<bool> _showPaymentModeDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Pilih Mode Pembayaran',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Pilih cara pembayaran yang diinginkan:',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Payment Gateway Real',
+                style: GoogleFonts.poppins(color: ColorPalette.primaryColor),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+              ),
+              child: Text(
+                'Simulasi (Testing)',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorPalette.background,
-      appBar: AppBar(
-        title: Text(
-          'Donasi Carbon Offset',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: ColorPalette.primaryColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                PageTransitionWidget.createRoute(const DonationHistoryScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Add bottom padding for navigation
+      body: SafeArea(
+        child: Column(
+          children: [
+            // CUSTOM CURVED HEADER
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
+              decoration: BoxDecoration(
+                color: ColorPalette.primaryColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        "Donasi",
+                        style: GoogleFonts.poppins(
+                          fontSize: 22, 
+                          fontWeight: FontWeight.w600, 
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.history, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        PageTransitionWidget.createRoute(
+                          Navigations(
+                            initialPage: 1, // <-- tab History
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // BODY CONTENT
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -229,6 +327,8 @@ class _DonationScreenState extends State<DonationScreen> {
                   // Donation form
                   if (_selectedCommunity != null) ...[
                     _buildDonationForm(),
+                    const SizedBox(height: 20),
+                    _buildDonationInfoCard(),
                     const SizedBox(height: 20),
                     _buildSuggestedAmounts(),
                     const SizedBox(height: 20),
@@ -266,16 +366,20 @@ class _DonationScreenState extends State<DonationScreen> {
                       isLoading: _isCreatingDonation,
                       onPressed: _isCreatingDonation ? null : _createDonation,
                     ),
-                ],
-              ),
+                      ],
+                    ),
+                  ),
             ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildCarbonInfoCard() {
     return CurvedContainer(
       backgroundColor: ColorPalette.secondary,
-      curveRadius: 16,
+      curveRadius: 30,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,18 +396,18 @@ class _DonationScreenState extends State<DonationScreen> {
           Row(
             children: [
               Expanded(
-                child: _buildCarbonStat(
-                  'Sudah Offset',
-                  '${_userProfile!.emisiOffset.toStringAsFixed(2)} kg',
-                  Colors.green,
+                child: _buildEmisiCard(
+                  title: "Sudah di-offset",
+                  value: "${_userProfile!.emisiOffset.toStringAsFixed(2)} kg",
+                  isSmallScreen: MediaQuery.of(context).size.width < 400,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildCarbonStat(
-                  'Belum Offset',
-                  '${_userProfile!.emisiBelum.toStringAsFixed(2)} kg',
-                  Colors.orange,
+                child: _buildEmisiCard(
+                  title: "Belum di-offset",
+                  value: "${_userProfile!.emisiBelum.toStringAsFixed(2)} kg",
+                  isSmallScreen: MediaQuery.of(context).size.width < 400,
                 ),
               ),
             ],
@@ -312,6 +416,44 @@ class _DonationScreenState extends State<DonationScreen> {
       ),
     );
   }
+
+  Widget _buildEmisiCard({
+  required String title,
+  required String value,
+  required bool isSmallScreen,
+}) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.15),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withOpacity(0.25)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: isSmallScreen ? 12 : 14,
+            color: Colors.black,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: isSmallScreen ? 16 : 18,
+            color: Colors.black87,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildCarbonStat(String label, String value, Color color) {
     return Container(
@@ -346,106 +488,293 @@ class _DonationScreenState extends State<DonationScreen> {
   }
 
   Widget _buildCommunitySelection() {
-    return CurvedContainer(
-      backgroundColor: Colors.white,
-      curveRadius: 16,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Pilih Komunitas',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            _selectedCommunity != null ? 'Komunitas Terpilih' : 'Pilih Komunitas',
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: ColorPalette.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
-          if (_communities.isEmpty)
-            const Center(child: Text('Tidak ada komunitas tersedia'))
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _communities.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final community = _communities[index];
-                final isSelected = _selectedCommunity?.id == community.id;
-                
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => _selectCommunity(community),
-                    borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isSelected ? ColorPalette.primaryColor.withOpacity(0.1) : Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? ColorPalette.primaryColor : Colors.grey.shade300,
-                        width: isSelected ? 2 : 1,
+        ),
+        const SizedBox(height: 12),
+        
+        // Selected community or community selector
+        if (_selectedCommunity != null)
+          _buildSelectedCommunityCard()
+        else if (_communities.isNotEmpty)
+          _buildCommunityDropdown()
+        else
+          Container(
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Center(
+              child: Text('Tidak ada komunitas tersedia'),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCommunityDropdown() {
+    return Column(
+      children: [
+        // Dropdown trigger
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _showCommunityList = !_showCommunityList;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.group,
+                    color: ColorPalette.primaryColor,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Pilih Komunitas untuk Donasi',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: ColorPalette.textPrimary,
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                community.name,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: ColorPalette.textPrimary,
-                                ),
-                              ),
-                            ),
-                            if (isSelected)
-                              Icon(
-                                Icons.check_circle,
-                                color: ColorPalette.primaryColor,
-                                size: 24,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          community.location,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: ColorPalette.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          community.focusAreaDisplayName,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: ColorPalette.primaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${community.formattedPricePerKg}/kg CO₂',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: ColorPalette.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
+                  ),
+                  Icon(
+                    _showCommunityList ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: ColorPalette.textSecondary,
+                    size: 24,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        
+        // Community list (expandable)
+        if (_showCommunityList) ...[
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: _communities.map((community) => _buildVerticalCommunityCard(community)).toList(),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSelectedCommunityCard() {
+    if (_selectedCommunity == null) return const SizedBox();
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: ColorPalette.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: ColorPalette.primaryColor, width: 2),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _selectedCommunity!.name,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: ColorPalette.textPrimary,
                   ),
                 ),
-              );
-              },
+                const SizedBox(height: 4),
+                Text(
+                  _selectedCommunity!.location,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: ColorPalette.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${_selectedCommunity!.formattedPricePerKg}/kg CO₂',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: ColorPalette.primaryColor,
+                  ),
+                ),
+              ],
             ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _selectedCommunity = null;
+                _carbonAmount = 0.0;
+                _donationAmount = 0.0;
+                _carbonController.clear();
+                _showCommunityList = false;
+              });
+            },
+            child: Text(
+              'Ganti',
+              style: GoogleFonts.poppins(
+                color: ColorPalette.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildVerticalCommunityCard(Community community) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _selectCommunity(community),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.grey.shade200,
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Community icon/badge
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: community.focusAreaColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  community.focusAreaIcon,
+                  color: community.focusAreaColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              
+              // Community details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      community.name,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: ColorPalette.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      community.location,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: ColorPalette.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: community.focusAreaColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        community.focusAreaDisplayName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: community.focusAreaColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Price
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    community.formattedPricePerKg,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: ColorPalette.primaryColor,
+                    ),
+                  ),
+                  Text(
+                    'per kg CO₂',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      color: ColorPalette.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -580,36 +909,36 @@ class _DonationScreenState extends State<DonationScreen> {
                   child: InkWell(
                     onTap: () => _setSuggestedAmount(_userProfile!.emisiBelum),
                     borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.green),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Donasikan Semua',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.green),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Donasikan Semua',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${_userProfile!.emisiBelum.toStringAsFixed(2)} kg',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: Colors.green.shade700,
+                          Text(
+                            '${_userProfile!.emisiBelum.toStringAsFixed(2)} kg',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: Colors.green.shade700,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
               // Suggested amounts lainnya
               ...suggestions.map((suggestion) {
                 final carbonAmount = suggestion['carbon'] as double;
@@ -620,49 +949,106 @@ class _DonationScreenState extends State<DonationScreen> {
                   child: InkWell(
                     onTap: isAvailable ? () => _setSuggestedAmount(carbonAmount) : null,
                     borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isAvailable 
-                          ? ColorPalette.primaryColor.withOpacity(0.1)
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
                         color: isAvailable 
-                            ? ColorPalette.primaryColor
-                            : Colors.grey.shade400,
+                            ? ColorPalette.primaryColor.withOpacity(0.1)
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isAvailable 
+                              ? ColorPalette.primaryColor
+                              : Colors.grey.shade400,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            suggestion['label'] as String,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: isAvailable 
+                                  ? ColorPalette.primaryColor
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                          Text(
+                            suggestion['formattedAmount'] as String,
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: isAvailable 
+                                  ? ColorPalette.textSecondary
+                                  : Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          suggestion['label'] as String,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: isAvailable 
-                                ? ColorPalette.primaryColor
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                        Text(
-                          suggestion['formattedAmount'] as String,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: isAvailable 
-                                ? ColorPalette.textSecondary
-                                : Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
-              );
+                );
               }).toList(),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDonationInfoCard() {
+    if (_donationAmount <= 0) return const SizedBox();
+    
+    final treeCount = (_donationAmount / 10000).floor();
+    final co2Absorption = treeCount * 21;
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: ColorPalette.third.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ColorPalette.third.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.eco,
+            size: 32,
+            color: ColorPalette.third,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Dampak Donasi Anda',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: ColorPalette.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (treeCount > 0) ...[
+            Text(
+              'Dengan donasi ${_formatCurrency(_donationAmount)}, setara dengan menanam $treeCount pohon yang menyerap ±$co2Absorption kg CO₂ per tahun.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: ColorPalette.textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ] else ...[
+            Text(
+              'Dengan donasi Rp10.000, setara dengan menanam 1 pohon yang menyerap ±21 kg CO₂ per tahun.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: ColorPalette.textSecondary,
+                height: 1.5,
+              ),
+            ),
+          ],
         ],
       ),
     );

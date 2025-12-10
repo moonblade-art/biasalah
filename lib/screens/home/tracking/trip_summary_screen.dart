@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '/widgets/page_transition.dart';
-import '../notifications/notification_screen.dart';
+
 import '/widgets/primary_button.dart';
 import '/utils/color_palette.dart';
 import '/utils/trip_history.dart';
@@ -194,7 +193,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const Navigations()),
+      MaterialPageRoute(builder: (_) => Navigations()),
       (route) => false,
     );
   }

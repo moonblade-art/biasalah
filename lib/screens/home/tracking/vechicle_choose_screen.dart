@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+
+import '../../../services/tracking_service.dart';
+import '../../../services/supabase_auth_service.dart';
+import '../../../utils/color_palette.dart';
+import '../../../widgets/page_transition.dart';
 import 'fuel_choose_screen.dart';
 import '../notifications/notification_screen.dart';
-import '/widgets/page_transition.dart';
-import '/utils/color_palette.dart';
 
-class VehicleChooseScreen extends StatelessWidget {
+
+class VehicleChooseScreen extends StatefulWidget {
   const VehicleChooseScreen({super.key});
+
+  @override
+  State<VehicleChooseScreen> createState() => _VehicleChooseScreenState();
+}
+
+class _VehicleChooseScreenState extends State<VehicleChooseScreen> {
+  final TrackingService _trackingService = TrackingService();
+  final SupabaseAuthService _authService = SupabaseAuthService();
+  
+  List<Map<String, dynamic>> _popularConfigs = [];
+  bool _isLoading = true;
 
   Widget _buildVehicleButton({
     required BuildContext context,

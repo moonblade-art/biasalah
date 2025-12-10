@@ -134,6 +134,23 @@ class SupabaseAuthService {
   Stream<AuthState> get authStateChanges {
     return _supabase.auth.onAuthStateChange;
   }
+
+  // ---------------------------------------------------------------------------
+  // NEW: Save Pending User Data (dipanggil manual dari RegisterPage jika mau)
+  // ---------------------------------------------------------------------------
+  Future<void> savePendingUserData(Map<String, String> data) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (data['userId'] != null) {
+      await prefs.setString('pending_user_id', data['userId']!);
+    }
+    if (data['email'] != null) {
+      await prefs.setString('pending_email', data['email']!);
+    }
+    if (data['fullName'] != null) {
+      await prefs.setString('pending_full_name', data['fullName']!);
+    }
+  }
   
   /// Save user data locally for profile creation
   Future<void> _saveUserDataLocally({

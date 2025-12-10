@@ -8,25 +8,38 @@ import '../screens/home/profile/profile_screen.dart';
 import '../screens/home/donation/donation_screen.dart';
 import '../screens/home/history/history_screen.dart';
 
-
+import '../models/community_model.dart';
 import '../utils/color_palette.dart';
 
 class Navigations extends StatefulWidget {
-  const Navigations({super.key});
+  final int initialPage;
+  final Community? community;
+
+  Navigations({
+    super.key,
+    this.initialPage = 2,
+    this.community,
+  });
 
   @override
   State<Navigations> createState() => _NavigationsState();
 }
 
 class _NavigationsState extends State<Navigations> {
-  int _page = 2; // 🌿 mulai dari Home
+  late int _page;
+
+  @override
+  void initState() {
+    super.initState();
+    _page = widget.initialPage; // <-- pakai nilai yang dikirim dari luar
+  }
 
   final List<Widget> _pages = [
-    const VehicleChooseScreen(),
-    const HistoryScreen(),
-    const HomeScreen(),
-    const DonationScreen(),
-    const ProfileScreen(),
+    VehicleChooseScreen(),
+    HistoryScreen(),
+    HomeScreen(),
+    DonationScreen(),
+    ProfileScreen(),
   ];
 
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
@@ -36,7 +49,7 @@ class _NavigationsState extends State<Navigations> {
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
-      // Simplified body without complex animations to prevent mouse tracker issues
+
       body: Builder(
         builder: (context) {
           try {
@@ -45,7 +58,6 @@ class _NavigationsState extends State<Navigations> {
               children: _pages,
             );
           } catch (e) {
-            // Fallback in case of rendering errors
             return Container(
               color: ColorPalette.background,
               child: Center(
@@ -62,7 +74,7 @@ class _NavigationsState extends State<Navigations> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          _page = 2; // Reset to home
+                          _page = 2;
                         });
                       },
                       child: const Text('Kembali ke Home'),
@@ -79,7 +91,7 @@ class _NavigationsState extends State<Navigations> {
         key: _bottomNavigationKey,
         index: _page,
         height: 65,
-        items: const <Widget>[
+        items: <Widget>[
           Icon(Icons.location_on, size: 30, color: Colors.white),
           Icon(Icons.history, size: 30, color: Colors.white),
           Icon(Icons.home, size: 30, color: Colors.white),

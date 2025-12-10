@@ -140,24 +140,51 @@ class UserProfileService {
   }
 
   /// Upload profile picture to Supabase Storage
-  Future<String> uploadProfilePicture(String userId, File imageFile) async {
-    try {
-      final fileName = 'profile_$userId.jpg';
-      final filePath = 'profiles/$fileName';
-      
-      await _supabase.storage
-          .from('avatars')
-          .upload(filePath, imageFile, fileOptions: const FileOptions(upsert: true));
-      
-      final publicUrl = _supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
-      
-      return publicUrl;
-    } catch (e) {
-      throw app_auth.AppAuthException('Gagal mengupload gambar: ${e.toString()}', 'upload_failed');
+Future<String> uploadProfilePicture(String userId, File imageFile) async {
+  try {
+    // Cek apakah user benar-benar login
+    final supabaseUserId = _supabase.auth.currentUser?.id;
+
+    if (supabaseUserId == null || supabaseUserId != userId) {
+      throw app_auth.AppAuthException(
+        'User tidak terautentikasi atau userId mismatch',
+        'unauthenticated',
+      );
     }
+
+    // Tentukan ekstensi file
+    final ext = imageFile.path.split('.').last;
+    final fileName = 'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    // Path wajib sesuai rule RLS → /userId/filename
+    final filePath = '$userId/$fileName';
+
+    // Upload ke storage
+    await _supabase.storage
+        .from('avatars')
+        .upload(
+          filePath,
+          imageFile,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    // Ambil public URL
+    final publicUrl = _supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+    // Anti cache biar gambar langsung berubah
+    return '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+
+  } catch (e) {
+    throw app_auth.AppAuthException(
+      'Gagal mengupload gambar: ${e.toString()}',
+      'upload_failed',
+    );
   }
+}
+
+
   
   /// Update emission data
   Future<UserProfile> updateEmissions({

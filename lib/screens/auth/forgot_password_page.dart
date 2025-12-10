@@ -1,3 +1,4 @@
+import 'package:emission_tracker/screens/auth/verfy_password_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +11,7 @@ import '../../utils/color_palette.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../services/auth_exception.dart' as app_auth;
 import 'login_screen.dart';
+import 'reset_password_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -21,7 +23,7 @@ class ForgotPasswordPage extends StatefulWidget {
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _email = TextEditingController();
   final SupabaseAuthService _authService = SupabaseAuthService();
-  
+
   bool _isLoading = false;
   String? _errorMessage;
   bool _emailSent = false;
@@ -51,26 +53,34 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     try {
       await _authService.resetPassword(_email.text.trim());
-      
+
       setState(() {
         _isLoading = false;
         _emailSent = true;
       });
 
-      // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Email reset password telah dikirim. Silakan cek email Anda.'),
+            content: Text('Kode verifikasi password telah dikirim. Silakan cek email Anda.'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 4),
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        /// --------------------------------------------------
+        /// ✅ Navigator otomatis ke ResetPasswordPage
+        /// --------------------------------------------------
+        Navigator.of(context).push(
+          PageTransitionWidget.createRoute(
+            VerifyPasswordPage(email: _email.text.trim()),
           ),
         );
       }
     } on app_auth.AppAuthException catch (e) {
       _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
     } catch (e) {
-      _showError('Gagal mengirim email reset. Silakan coba lagi.');
+      _showError('Gagal mengirim kode verifikasi. Silakan coba lagi.');
     }
   }
 
@@ -232,11 +242,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
           ),
-            SafeArea(
+          SafeArea(
             child: Padding(
               padding: const EdgeInsets.only(left: 0, top: 16),
               child: BackButtonWidget(
-              previousPage: const LoginScreen(),
+                previousPage: const LoginScreen(),
               ),
             ),
           ),

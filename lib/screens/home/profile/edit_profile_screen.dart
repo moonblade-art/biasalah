@@ -94,17 +94,110 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 80,
+      // Show bottom sheet to choose between camera and gallery
+      final ImageSource? source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Pilih Sumber Foto',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: ColorPalette.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pop(context, ImageSource.camera),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.camera_alt, size: 32, color: ColorPalette.primaryColor),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Kamera',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => Navigator.pop(context, ImageSource.gallery),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.photo_library, size: 32, color: ColorPalette.primaryColor),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Galeri',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       );
-      
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
+
+      if (source != null) {
+        final XFile? image = await _imagePicker.pickImage(
+          source: source,
+          maxWidth: 512,
+          maxHeight: 512,
+          imageQuality: 80,
+        );
+        
+        if (image != null) {
+          setState(() {
+            _selectedImage = File(image.path);
+          });
+        }
       }
     } catch (e) {
       // Handle MissingPluginException gracefully
@@ -368,49 +461,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             const SizedBox(height: 20),
 
-            // Carbon Stats (Read-only)
-            CurvedContainer(
-              backgroundColor: Colors.white,
-              curveRadius: 16,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Statistik Carbon',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: ColorPalette.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          'Sudah Offset',
-                          '${_userProfile?.emisiOffset.toStringAsFixed(2) ?? "0.00"} kg',
-                          Icons.eco,
-                          Colors.green,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          'Belum Offset',
-                          '${_userProfile?.emisiBelum.toStringAsFixed(2) ?? "0.00"} kg',
-                          Icons.warning,
-                          Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
             // Error Message
             if (_errorMessage != null) ...[
               const SizedBox(height: 20),
@@ -488,18 +538,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       : _buildDefaultAvatar(),
             ),
           ),
-          const SizedBox(height: 12),
-          TextButton.icon(
-            onPressed: kIsWeb ? null : _pickImage, // Disable on web for now
-            icon: Icon(Icons.camera_alt, color: ColorPalette.primaryColor),
-            label: Text(
-              kIsWeb ? 'Upload Foto (Coming Soon)' : 'Ubah Foto',
-              style: GoogleFonts.poppins(
-                color: ColorPalette.primaryColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+
           const SizedBox(height: 16),
           Text(
             'Edit Informasi Profil',

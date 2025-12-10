@@ -260,8 +260,7 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                                       TrackingScreen(
                                         vehicleType: widget.vehicleType,
                                         fuelType: selectedFuel!,
-                                        cc: selectedCC,
-                                        size: selectedSize,
+                                        cc: selectedCC ?? selectedSize,
                                       ),
                                     ),
                                   );

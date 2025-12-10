@@ -1,63 +1,59 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:latlong2/latlong.dart';
 
 class TripHistory {
   static const String _storageKey = 'trip_history';
 
-  // ✅ TAMBAHKAN parameter vehicleType
   static Future<void> saveTrip({
     required String title,
-    required String vehicleType, // ✅ Ini yang kurang
+    required String vehicleType,
     required double distance,
     required int duration,
     required double emission,
     required List<LatLng> routePoints,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> existing = prefs.getStringList(_storageKey) ?? [];
+    final existing = prefs.getStringList(_storageKey) ?? [];
 
-    final routeString = routePoints
-        .map((p) => '${p.latitude},${p.longitude}')
-        .join('|');
-    
-    // Simpan dalam format: title;vehicleType;distance;duration;emission;route;timestamp
-    final tripEntry =
-        '$title;$vehicleType;$distance;$duration;$emission;$routeString;${DateTime.now().toIso8601String()}';
-    existing.add(tripEntry);
+    final jsonEntry = jsonEncode({
+      "title": title,
+      "vehicleType": vehicleType,
+      "distance": distance,
+      "duration": duration,
+      "emission": emission,
+      "timestamp": DateTime.now().toIso8601String(),
+      "routePoints": routePoints
+          .map((p) => {"lat": p.latitude, "lng": p.longitude})
+          .toList(),
+    });
 
+    existing.add(jsonEntry);
     await prefs.setStringList(_storageKey, existing);
   }
 
   static Future<List<Map<String, dynamic>>> getTrips() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> raw = prefs.getStringList(_storageKey) ?? [];
+    final raw = prefs.getStringList(_storageKey) ?? [];
 
-    final List<Map<String, dynamic>> result = raw.reversed.map((entry) {
-      final parts = entry.split(';');
-      // Format: [title, vehicleType, distance, duration, emission, route, timestamp]
-      if (parts.length < 7) return <String, dynamic>{};
+    final trips = raw.map((e) {
+      final data = jsonDecode(e);
 
-      final routePoints = parts[5].split('|').map((coord) {
-        final latLng = coord.split(',');
-        if (latLng.length != 2) return LatLng(0, 0);
-        final lat = double.tryParse(latLng[0]) ?? 0.0;
-        final lng = double.tryParse(latLng[1]) ?? 0.0;
-        return LatLng(lat, lng);
-      }).toList();
-
-      return <String, dynamic>{
-        'id': entry.hashCode,
-        'title': parts[0],
-        'vehicleType': parts[1], // ✅ Ambil vehicleType
-        'distance': double.tryParse(parts[2]) ?? 0.0,
-        'duration': int.tryParse(parts[3]) ?? 0,
-        'emission': double.tryParse(parts[4]) ?? 0.0,
-        'routePoints': routePoints,
-        'timestamp': DateTime.tryParse(parts[6]) ?? DateTime.now(),
+      return {
+        "id": e.hashCode,
+        "title": data["title"],
+        "vehicleType": data["vehicleType"],
+        "distance": (data["distance"] ?? 0).toDouble(),
+        "duration": data["duration"] ?? 0,
+        "emission": (data["emission"] ?? 0).toDouble(),
+        "timestamp": DateTime.parse(data["timestamp"]),
+        "routePoints": (data["routePoints"] as List)
+            .map((p) => LatLng(p["lat"], p["lng"]))
+            .toList(),
       };
-    }).where((e) => e.isNotEmpty).toList();
+    }).toList().reversed.toList(); // paling baru di atas
 
-    return result;
+    return trips;
   }
 
   static Future<void> clearAllTrips() async {

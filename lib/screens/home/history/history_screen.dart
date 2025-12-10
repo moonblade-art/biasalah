@@ -16,6 +16,7 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Future<List<Map<String, dynamic>>> _tripsFuture;
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -26,14 +27,17 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
 
   @override
   void dispose() {
+    _isDisposed = true;
     _tabController.dispose();
     super.dispose();
   }
 
   void _refreshTrips() {
-    setState(() {
-      _tripsFuture = TripHistory.getTrips();
-    });
+    if (!_isDisposed && mounted) {
+      setState(() {
+        _tripsFuture = TripHistory.getTrips();
+      });
+    }
   }
 
 
@@ -110,7 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Riwayat Perjalanan",
+                    "Riwayat",
                     style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                 ],
@@ -163,13 +167,24 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                                   final formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(timestamp);
                                   return GestureDetector(
                                     onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => TripDetailScreen(trip: trip),
-                                        ),
-                                      );
+                                      if (mounted && !_isDisposed) {
+                                        // Show trip details in a dialog instead of navigating to missing screen
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text(title),
+                                            content: Text('Detail perjalanan: $formattedDate'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(context),
+                                                child: const Text('Tutup'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
                                     },
+                                    behavior: HitTestBehavior.opaque,
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 16),
                                       padding: const EdgeInsets.all(16),

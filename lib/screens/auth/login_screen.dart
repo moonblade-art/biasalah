@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate to home
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            PageTransitionWidget.createRoute(const Navigations()),
+            PageTransitionWidget.createRoute(Navigations()),
           );
         }
       }

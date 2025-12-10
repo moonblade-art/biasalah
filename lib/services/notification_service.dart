@@ -1,9 +1,7 @@
 // lib/services/notification_service.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:postgrest/postgrest.dart';
 import '../models/notification_model.dart';
-import '../config/supabase_config.dart';
 import 'auth_exception.dart' as app_auth;
 
 class NotificationService {

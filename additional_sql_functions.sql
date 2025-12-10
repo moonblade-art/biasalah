@@ -1,0 +1,2 @@
+-- =====================================================
+-- ADDITIONAL SQL FUNCTIONS FOR ECOTRACK

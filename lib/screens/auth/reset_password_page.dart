@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../widgets/input_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/curved_container.dart';
 import '../../widgets/back_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
-import 'forgot_password_page.dart';
-import 'login_screen.dart'; 
+import 'login_screen.dart';
 
 class ResetPasswordPage extends StatefulWidget {
-  const ResetPasswordPage({super.key});
+  final String email;
+
+  const ResetPasswordPage({super.key, required this.email});
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();
@@ -21,11 +24,70 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _newPass = TextEditingController();
   final TextEditingController _confirmPass = TextEditingController();
 
+  bool _isLoading = false;
+  final supabase = Supabase.instance.client;
+
   @override
   void dispose() {
     _newPass.dispose();
     _confirmPass.dispose();
     super.dispose();
+  }
+
+  Future<void> _resetPassword() async {
+    final newPass = _newPass.text.trim();
+    final confirmPass = _confirmPass.text.trim();
+
+    if (newPass != confirmPass) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kata sandi tidak cocok.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (newPass.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kata sandi minimal 6 karakter.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Update password ke Supabase (versi SDK terbaru)
+      await supabase.auth.updateUser(
+        UserAttributes(password: newPass),
+      );
+
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kata sandi berhasil diubah.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.of(context).pushReplacement(
+        PageTransitionWidget.createRoute(const LoginScreen()),
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal memperbarui kata sandi: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   @override
@@ -92,21 +154,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                     ),
                     const SizedBox(height: 28),
                     PrimaryButton(
-                      text: "Simpan Kata Sandi",
-                      onPressed: () {
-                        if (_newPass.text.trim() != _confirmPass.text.trim()) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Kata sandi tidak cocok.'),
-                              backgroundColor: Colors.redAccent,
-                            ),
-                          );
-                        } else {
-                          Navigator.of(context).pushReplacement(
-                            PageTransitionWidget.createRoute(const LoginScreen()),
-                          );
-                        }
-                      },
+                      text: _isLoading ? "Menyimpan..." : "Simpan Kata Sandi",
+                      onPressed: _isLoading ? null : _resetPassword,
                     ),
                   ],
                 ),
@@ -115,9 +164,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, top: 16),
-                child: BackButtonWidget(
-                  previousPage: const ForgotPasswordPage(),
-                ),
+                child: BackButtonWidget(),  // cukup ini
               ),
             ),
           ],
