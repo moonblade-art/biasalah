@@ -3,32 +3,29 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '/utils/color_palette.dart';
+import '../../../models/trip_tracking_model.dart';
 
 class TripDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> trip;
+  final TripTracking trip;
 
   const TripDetailScreen({super.key, required this.trip});
 
   // ✅ Ambil ikon berdasarkan vehicleType
   String _getVehicleIcon(String vehicleType) {
     final type = vehicleType.toLowerCase();
-    if (type == 'sepeda') return 'Sepeda';
-    if (type == 'motor') return 'Motor';
-    if (type == 'mobil') return 'Mobil';
-    if (type == 'truk') return 'Truk';
-    if (type == 'angkutan') return 'Angkutan';
-    return '🚙';
+    if (type.contains('sepeda') || type.contains('bicycle')) return 'Sepeda';
+    if (type.contains('motor') || type.contains('motorcycle')) return 'Motor';
+    if (type.contains('mobil') || type.contains('car')) return 'Mobil';
+    if (type.contains('truk') || type.contains('truck')) return 'Truk';
+    if (type.contains('bus')) return 'Bus';
+    return 'Kendaraan';
   }
 
-  String _formatDuration(int seconds) {
-    final h = seconds ~/ 3600;
-    final m = (seconds % 3600) ~/ 60;
-    final s = seconds % 60;
-    if (h > 0) {
-      return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-    } else {
-      return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-    }
+  String _formatDuration(int? minutes) {
+    if (minutes == null) return '00:00:00';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:00';
   }
 
   // ✅ Reuse tampilan info card seperti di TripSummaryScreen
@@ -67,13 +64,18 @@ class TripDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final routePoints = trip['routePoints'] as List<LatLng>;
-    final initialCenter = routePoints.isNotEmpty ? routePoints.first : const LatLng(-6.2, 106.8);
-    final title = trip['title'] as String;
-    final distance = trip['distance'] as double;
-    final duration = trip['duration'] as int;
-    final emission = trip['emission'] as double;
-    final vehicleType = trip['vehicleType'] as String;
+    final routePoints = trip.routePoints ?? [];
+    final initialCenter = routePoints.isNotEmpty 
+        ? routePoints.first 
+        : (trip.startLatitude != null && trip.startLongitude != null)
+            ? LatLng(trip.startLatitude!, trip.startLongitude!)
+            : const LatLng(-6.2, 106.8);
+            
+    final title = trip.title ?? 'Detail Perjalanan';
+    final distance = trip.formattedDistance;
+    final duration = _formatDuration(trip.tripDurationMinutes);
+    final emission = trip.formattedEmission;
+    final vehicleType = trip.vehicleTypeDisplay;
 
     return Scaffold(
       backgroundColor: ColorPalette.background,
@@ -171,6 +173,38 @@ class TripDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                             ],
+                          )
+                        else if (trip.startLatitude != null && trip.startLongitude != null)
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                width: 40,
+                                height: 40,
+                                point: LatLng(trip.startLatitude!, trip.startLongitude!),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 3),
+                                  ),
+                                  child: const Icon(Icons.flag, color: Colors.white, size: 20),
+                                ),
+                              ),
+                              if (trip.endLatitude != null && trip.endLongitude != null)
+                                Marker(
+                                  width: 40,
+                                  height: 40,
+                                  point: LatLng(trip.endLatitude!, trip.endLongitude!),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: ColorPalette.primaryColor,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 3),
+                                    ),
+                                    child: const Icon(Icons.location_on, color: Colors.white, size: 20),
+                                  ),
+                                ),
+                            ],
                           ),
                       ],
                     ),
@@ -199,7 +233,7 @@ class TripDetailScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              _getVehicleIcon(vehicleType),
+                              _getVehicleIcon(trip.vehicleType),
                               style: const TextStyle(fontSize: 32),
                             ),
                             const SizedBox(height: 8),
@@ -220,17 +254,17 @@ class TripDetailScreen extends StatelessWidget {
                                 _buildInfoCard(
                                   icon: Icons.route_rounded,
                                   label: "Jarak",
-                                  value: "${distance.toStringAsFixed(2)} km",
+                                  value: distance,
                                 ),
                                 _buildInfoCard(
                                   icon: Icons.access_time_rounded,
                                   label: "Waktu",
-                                  value: _formatDuration(duration),
+                                  value: duration,
                                 ),
                                 _buildInfoCard(
                                   icon: Icons.eco_rounded,
                                   label: "Emisi",
-                                  value: "${emission.toStringAsFixed(2)} kg",
+                                  value: emission,
                                 ),
                               ],
                             ),

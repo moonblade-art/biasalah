@@ -1,14 +1,8 @@
-// Payment Configuration
 class PaymentConfig {
-  // Environment settings
-  static const bool isDevelopment = true; // Set to false for production
-  static const bool enableSimulation = true; // Allow simulation mode
-  
-  // Midtrans Configuration
-  static const String merchantId = 'G073857189';
-  static const String clientKey = 'Mid-client-choJmn3fHeXuhrNNM';
-  
-  // URLs
+  // Environment configuration
+  static const bool isProduction = false; // Set to true for production
+  static bool get isDevelopment => !isProduction;
+
   static const String sandboxUrl = 'https://app.sandbox.midtrans.com';
   static const String productionUrl = 'https://app.midtrans.com';
   

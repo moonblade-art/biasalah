@@ -24,6 +24,8 @@ class TrackingService {
     DateTime? tripDate,
     int? tripDurationMinutes,
     String? notes,
+    String? title,
+    List<Map<String, double>>? routePoints,
   }) async {
     try {
       // Calculate emission using the emission calculator
@@ -80,6 +82,8 @@ class TrackingService {
         'trip_date': (tripDate ?? DateTime.now()).toIso8601String().split('T')[0],
         'trip_duration_minutes': tripDurationMinutes,
         'notes': notes,
+        'title': title,
+        'route_points': routePoints,
       };
 
       print('Saving trip data: $tripData'); // Debug log
@@ -144,8 +148,6 @@ class TrackingService {
             .where((trip) => trip['vehicle_type'] == vehicleType)
             .toList();
       }
-
-
 
       return filteredResults
           .map((json) => trip_model.TripTracking.fromJson(json))
@@ -223,6 +225,7 @@ class TrackingService {
     String? startLocation,
     String? endLocation,
     String? notes,
+    String? title,
   }) async {
     try {
       final updateData = <String, dynamic>{};
@@ -230,6 +233,7 @@ class TrackingService {
       if (startLocation != null) updateData['start_location'] = startLocation;
       if (endLocation != null) updateData['end_location'] = endLocation;
       if (notes != null) updateData['notes'] = notes;
+      if (title != null) updateData['title'] = title;
 
       if (updateData.isEmpty) {
         throw app_auth.AppAuthException('Tidak ada data yang diperbarui', 'no_update_data');
@@ -238,6 +242,7 @@ class TrackingService {
       final response = await _supabase
           .from('trip_history')
           .update(updateData)
+          .eq('id', tripId)
           .select()
           .single();
 
@@ -254,7 +259,8 @@ class TrackingService {
     try {
       await _supabase
           .from('trip_history')
-          .delete();
+          .delete()
+          .eq('id', tripId);
     } on PostgrestException catch (e) {
       throw app_auth.AppAuthException('Gagal menghapus perjalanan: ${e.message}', 'delete_trip_failed');
     } catch (e) {
@@ -270,8 +276,6 @@ class TrackingService {
           .select()
           .order('vehicle_type')
           .order('cc_min');
-
-
 
       final response = await query;
 

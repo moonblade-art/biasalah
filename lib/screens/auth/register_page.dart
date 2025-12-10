@@ -97,7 +97,11 @@ class _RegisterPageState extends State<RegisterPage> {
     } on app_auth.AppAuthException catch (e) {
       _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
     } catch (e) {
-      _showError('Terjadi kesalahan. Silakan coba lagi.');
+      if (e.toString().contains("already registered") || e.toString().contains("User already exists")) {
+         _showError('Email sudah terdaftar. Silakan login.');
+      } else {
+         _showError('Terjadi kesalahan. Silakan coba lagi.');
+      }
     }
   }
 

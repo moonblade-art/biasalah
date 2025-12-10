@@ -164,39 +164,23 @@ class _DonationScreenState extends State<DonationScreen> {
 
       // Handle payment URL
       if (donation.paymentUrl != null) {
-        // Show payment mode dialog
-        if (mounted) {
-          final shouldSimulate = await _showPaymentModeDialog();
-          if (shouldSimulate) {
-            // Simulate successful payment for testing
-            await _donationService.simulateSuccessfulPayment(donation.id);
-            
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Pembayaran berhasil disimulasikan untuk testing!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-          } else {
-            // Open real Midtrans payment gateway
-            final uri = Uri.parse(donation.paymentUrl!);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-              
-              // Show info about payment process
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Silakan selesaikan pembayaran di browser. Status akan diupdate otomatis.'),
-                    backgroundColor: Colors.blue,
-                    duration: Duration(seconds: 5),
-                  ),
-                );
-              }
-            }
+        // Open real Midtrans payment gateway
+        final uri = Uri.parse(donation.paymentUrl!);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          
+          // Show info about payment process
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Silakan selesaikan pembayaran di browser. Status akan diupdate otomatis.'),
+                backgroundColor: Colors.blue,
+                duration: Duration(seconds: 5),
+              ),
+            );
           }
+        } else {
+          throw Exception('Tidak dapat membuka link pembayaran');
         }
       }
 
@@ -219,43 +203,6 @@ class _DonationScreenState extends State<DonationScreen> {
     setState(() {
       _errorMessage = message;
     });
-  }
-
-  Future<bool> _showPaymentModeDialog() async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Pilih Mode Pembayaran',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          ),
-          content: Text(
-            'Pilih cara pembayaran yang diinginkan:',
-            style: GoogleFonts.poppins(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                'Payment Gateway Real',
-                style: GoogleFonts.poppins(color: ColorPalette.primaryColor),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-              ),
-              child: Text(
-                'Simulasi (Testing)',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
   }
 
   @override

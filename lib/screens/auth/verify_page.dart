@@ -63,6 +63,20 @@ class _VerifyPageState extends State<VerifyPage> {
     });
 
     try {
+      // 1. Cek dulu apakah user sebenarnya sudah verified (misal klik link di email)
+      // Kita refresh session dulu untuk memastikan data terbaru
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        await Supabase.instance.client.auth.refreshSession();
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null && user.emailConfirmedAt != null) {
+          // Sudah verified, langsung lanjut
+          await _handleVerifiedUser();
+          return;
+        }
+      }
+
+      // 2. Jika belum, lakukan verifikasi OTP
       final response = await Supabase.instance.client.auth.verifyOTP(
         email: _userEmail!,
         token: _otpCode,
@@ -74,7 +88,15 @@ class _VerifyPageState extends State<VerifyPage> {
       }
     } on AuthException catch (e) {
       setState(() {
-        _errorMessage = e.message;
+        if (e.message.contains("expired") || e.message.contains("invalid")) {
+          _errorMessage = "Kode salah atau kadaluwarsa. \nPastikan Anda TIDAK mengklik link di email jika ingin memasukkan kode manual.";
+        } else {
+          _errorMessage = e.message;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Terjadi kesalahan: ${e.toString()}";
       });
     } finally {
       if (mounted) {
@@ -92,13 +114,31 @@ class _VerifyPageState extends State<VerifyPage> {
 
       final pending = await _authService.getPendingUserData();
 
-      if (pending != null) {
-        await _profileService.createProfile(
-          userId: user.id,
-          fullName: (pending["fullName"] ?? "").toString(),
-          email: (pending["email"] ?? "").toString(),
-        );
-        await _authService.clearPendingUserData();
+      // Coba buat profile, tapi jangan error kalau sudah ada
+      try {
+        if (pending != null) {
+          await _profileService.createProfile(
+            userId: user.id,
+            fullName: (pending["fullName"] ?? "").toString(),
+            email: (pending["email"] ?? "").toString(),
+          );
+          await _authService.clearPendingUserData();
+        } else {
+          // Fallback jika pending data hilang, coba cek apakah profile sudah ada
+          final exists = await _profileService.profileExists(user.id);
+          if (!exists) {
+             // Jika belum ada dan pending data null, kita buat profile minimal
+             // atau bisa ambil dari user metadata jika ada
+             await _profileService.createProfile(
+              userId: user.id,
+              fullName: user.userMetadata?['full_name'] ?? "User",
+              email: user.email ?? "",
+            );
+          }
+        }
+      } catch (e) {
+        // Ignore error jika profile sudah ada (misal karena trigger atau race condition)
+        print("Profile creation info: $e");
       }
 
       if (mounted) {

@@ -225,14 +225,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Upload image if selected
       String? imageUrl = _currentImageUrl;
-      bool uploadSuccess = true;
       
       // Upload image if selected
       if (_selectedImage != null) {
         try {
           imageUrl = await _profileService.uploadProfilePicture(user.id, _selectedImage!);
         } catch (e) {
-          uploadSuccess = false;
           _showSnackBar('Gagal mengupload gambar: ${e.toString()}', isError: true);
           // Don't continue with profile update if image upload fails
           setState(() {
@@ -263,13 +261,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       _showSnackBar('Profil berhasil diperbarui');
 
-      // Go back to profile screen
-      Navigator.pop(context, true); // Return true to indicate profile was updated
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isSaving = false;
-      });
+      print("Error saving profile: $e");
+      if (mounted) {
+        setState(() {
+          _errorMessage = "Gagal menyimpan profil: ${e.toString()}";
+          _isSaving = false;
+        });
+        _showSnackBar('Gagal menyimpan profil: ${e.toString()}', isError: true);
+      }
     }
   }
 

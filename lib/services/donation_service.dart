@@ -1,25 +1,14 @@
-// lib/services/donation_service.dart
-
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/donation_model.dart';
 import '../models/community_model.dart';
 import '../services/community_service.dart';
-
+import '../config/payment_config.dart';
 import 'auth_exception.dart' as app_auth;
 
 class DonationService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final CommunityService _communityService = CommunityService();
-
-
-
-  // Midtrans configuration
-  static const String _midtransServerKey = 'G073857189YOUR_MIDTRANS_SERVER_KEY';
-  static const String _midtransClientKey = 'G073857189Mid-client-choJmn3fHeXuhrNNM';
-  static const String _midtransBaseUrl = 'https://app.sandbox.midtrans.com/snap/v1/transactions';
-  static const bool _isProduction = false; // Set to true for production
 
   /// Create a new donation
   Future<Donation> createDonation({
@@ -45,8 +34,8 @@ class DonationService {
       final donationAmount = community.calculateDonationAmount(carbonAmount);
 
       // Validate minimum donation
-      if (donationAmount < 1000) {
-        throw app_auth.AppAuthException('Donasi minimum Rp 1.000', 'minimum_donation_not_met');
+      if (donationAmount < PaymentConfig.minimumDonation) {
+        throw app_auth.AppAuthException('Donasi minimum Rp ${PaymentConfig.minimumDonation}', 'minimum_donation_not_met');
       }
 
       // Check user's available carbon offset
@@ -110,7 +99,7 @@ class DonationService {
     }
   }
 
-  /// Create Midtrans payment (Development Mode - Simulation)
+  /// Create Midtrans payment via Supabase Edge Function
   Future<String> _createMidtransPayment({
     required Donation donation,
     required Community community,
@@ -118,21 +107,43 @@ class DonationService {
     required String userName,
   }) async {
     try {
-      // DEVELOPMENT MODE: Simulate payment creation
-      // In production, this should call your backend API that handles Midtrans
+      print('=== Creating Midtrans Payment ===');
       
-      print('=== DEVELOPMENT MODE: Simulating Midtrans Payment ===');
-      print('Order ID: ${donation.midtransOrderId}');
-      print('Amount: ${donation.amount}');
-      print('Community: ${community.name}');
-      print('User: $userName ($userEmail)');
-      
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Return a mock payment URL for development
-      // In production, replace this with actual Midtrans integration via backend
-      return 'https://simulator.sandbox.midtrans.com/v2/ui/index?order_id=${donation.midtransOrderId}&amount=${donation.amount.toInt()}';
+      // Call Supabase Edge Function
+      final response = await _supabase.functions.invoke(
+        'create-midtrans-token',
+        body: {
+          'donationId': donation.midtransOrderId,
+          'amount': donation.amount,
+          'communityName': community.name,
+          'userDetails': {
+            'fullName': userName,
+            'email': userEmail,
+          }
+        },
+      );
+
+      if (response.status != 200) {
+        throw Exception('Failed to create payment: ${response.data}');
+      }
+
+      final data = response.data;
+      final redirectUrl = data['redirect_url'];
+      final token = data['token'];
+
+      if (redirectUrl == null) {
+        throw Exception('No redirect URL returned from Midtrans');
+      }
+
+      // Save token to database (optional)
+      await _supabase
+          .from('donations')
+          .update({
+            'midtrans_transaction_id': token,
+          })
+          .eq('id', donation.id);
+
+      return redirectUrl;
       
     } catch (e) {
       if (e is app_auth.AppAuthException) rethrow;
@@ -341,103 +352,32 @@ class DonationService {
       // Return default values if function doesn't exist
       return {
         'total_donations': 0,
-        'total_amount': 0.0,
-        'total_carbon_offset': 0.0,
-        'active_donors': 0,
+        'total_amount_donated': 0.0,
+        'total_carbon_offset_donated': 0.0,
       };
     }
   }
 
-  /// Get user profile helper
+  /// Helper to get user profile
   Future<Map<String, dynamic>?> _getUserProfile(String userId) async {
     try {
       final response = await _supabase
           .from('users')
-          .select('emisi_offset, emisi_belum')
-          .eq('user_id', userId)
+          .select()
+          .eq('id', userId)
           .maybeSingle();
-
       return response;
     } catch (e) {
       return null;
     }
   }
-
-  /// Validate donation request
-  bool validateDonationRequest({
-    required String communityId,
-    required double carbonAmount,
-    required double userAvailableCarbon,
-  }) {
-    if (communityId.isEmpty) return false;
-    if (carbonAmount <= 0) return false;
-    if (carbonAmount > userAvailableCarbon) return false;
-    if (carbonAmount > 1000) return false; // Maximum 1000 kg per donation
-    
-    return true;
-  }
-
-  /// Check payment status via Supabase Edge Function
-  Future<Map<String, dynamic>> checkPaymentStatus(String orderId) async {
-    try {
-      print('=== Checking Payment Status via Backend ===');
-      print('Order ID: $orderId');
-      
-      // TODO: Implement proper Supabase Edge Function call
-      // For now, return a mock response
-      return {
-        'order_id': orderId,
-        'transaction_status': 'pending',
-        'payment_type': 'bank_transfer',
-        'transaction_id': 'mock_transaction_id',
-        'gross_amount': '10000',
-        'transaction_time': DateTime.now().toIso8601String(),
-      };
-    } catch (e) {
-      print('Error checking payment status: $e');
-      throw app_auth.AppAuthException('Gagal memeriksa status pembayaran: ${e.toString()}', 'payment_status_check_failed');
-    }
-  }
-
-  /// Test Midtrans connection via backend
-  Future<Map<String, dynamic>> testMidtransConnection() async {
-    try {
-      print('=== Testing Midtrans Connection ===');
-      
-      // TODO: Implement proper Midtrans connection test
-      // For now, return a mock response
-      return {
-        'success': true,
-        'message': 'Connection test successful (mock)',
-        'timestamp': DateTime.now().toIso8601String(),
-      };
-    } catch (e) {
-      print('💥 Connection test error: $e');
-      return {
-        'success': false,
-        'message': 'Connection test failed',
-        'error': e.toString()
-      };
-    }
-  }
-
-  /// Simulate successful payment (Development Mode Only)
-  Future<Donation> simulateSuccessfulPayment(String donationId) async {
-    try {
-      print('=== DEVELOPMENT MODE: Simulating Successful Payment ===');
-      print('Donation ID: $donationId');
-      
-      // Update donation status to success
-      final donation = await updateDonationStatus(
-        donationId: donationId,
-        status: 'success',
-        transactionId: 'SIM-${DateTime.now().millisecondsSinceEpoch}',
-      );
-      
-      print('Payment simulation completed successfully');
-      return donation;
-    } catch (e) {
-      throw app_auth.AppAuthException('Gagal mensimulasikan pembayaran: ${e.toString()}', 'simulate_payment_failed');
-    }
+  
+  /// Simulate successful payment (for testing)
+  Future<void> simulateSuccessfulPayment(String donationId) async {
+    await updateDonationStatus(
+      donationId: donationId,
+      status: 'success',
+      transactionId: 'SIMULATED-${DateTime.now().millisecondsSinceEpoch}',
+    );
   }
 }

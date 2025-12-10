@@ -1,3 +1,5 @@
+import 'package:latlong2/latlong.dart';
+
 class TripTracking {
   final String id;
   final String userId;
@@ -15,6 +17,8 @@ class TripTracking {
   final DateTime tripDate;
   final int? tripDurationMinutes;
   final String? notes;
+  final String? title;
+  final List<LatLng>? routePoints;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -35,6 +39,8 @@ class TripTracking {
     required this.tripDate,
     this.tripDurationMinutes,
     this.notes,
+    this.title,
+    this.routePoints,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -67,6 +73,13 @@ class TripTracking {
           : DateTime.parse(json['created_at'] as String),
       tripDurationMinutes: json['trip_duration_minutes'] as int?,
       notes: json['notes'] as String?,
+      title: json['title'] as String?,
+      routePoints: (json['route_points'] as List?)
+          ?.map((point) => LatLng(
+                (point['lat'] ?? point['latitude'] as num).toDouble(),
+                (point['lng'] ?? point['longitude'] as num).toDouble(),
+              ))
+          .toList(),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] ?? json['created_at'] as String),
     );
@@ -90,6 +103,8 @@ class TripTracking {
       'trip_date': tripDate.toIso8601String().split('T')[0],
       'trip_duration_minutes': tripDurationMinutes,
       'notes': notes,
+      'title': title,
+      'route_points': routePoints?.map((p) => {'lat': p.latitude, 'lng': p.longitude}).toList(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };

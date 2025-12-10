@@ -30,7 +30,7 @@ class UserProfileService {
       
       final response = await _supabase
           .from(SupabaseConfig.usersTable)
-          .insert(profileData)
+          .upsert(profileData, onConflict: 'user_id')
           .select()
           .single();
       

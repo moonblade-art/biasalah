@@ -7,16 +7,61 @@ import '../../../models/trip_tracking_model.dart' as trip_model;
 import '../../../utils/color_palette.dart';
 import '../../../widgets/curved_container.dart';
 import '../../../widgets/primary_button.dart';
-import '../../../widgets/page_transition.dart';
-import '../donation/donation_screen.dart';
+import '../../../services/tracking_service.dart' as import_tracking_service;
 
-class TrackingResultScreen extends StatelessWidget {
+class TrackingResultScreen extends StatefulWidget {
   final trip_model.TripTracking trip;
 
   const TrackingResultScreen({
     super.key,
     required this.trip,
   });
+
+  @override
+  State<TrackingResultScreen> createState() => _TrackingResultScreenState();
+}
+
+class _TrackingResultScreenState extends State<TrackingResultScreen> {
+  late TextEditingController _titleController;
+  bool _isSavingTitle = false;
+  final _trackingService = import_tracking_service.TrackingService();
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.trip.title ?? 'Perjalanan ${widget.trip.tripDate.day}/${widget.trip.tripDate.month}/${widget.trip.tripDate.year}');
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveTitle() async {
+    if (_titleController.text.trim().isEmpty) return;
+
+    setState(() => _isSavingTitle = true);
+    try {
+      await _trackingService.updateTrip(
+        tripId: widget.trip.id,
+        title: _titleController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Judul perjalanan berhasil disimpan')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan judul: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingTitle = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +133,51 @@ class TrackingResultScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 30),
 
+                    // Title Input
+                    CurvedContainer(
+                      backgroundColor: Colors.white,
+                      curveRadius: 16,
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Judul Perjalanan',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: ColorPalette.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _titleController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Beri judul perjalanan ini...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                onPressed: _isSavingTitle ? null : _saveTitle,
+                                icon: _isSavingTitle 
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                  : const Icon(Icons.save, color: ColorPalette.primaryColor),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
                     // Trip Summary Card
                     CurvedContainer(
                       backgroundColor: Colors.white,
@@ -106,16 +196,16 @@ class TrackingResultScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           
-                          _buildSummaryRow('Jenis Kendaraan', trip.vehicleType),
-                          _buildSummaryRow('Kapasitas Mesin', '${trip.engineCC} CC'),
-                          _buildSummaryRow('Jarak Tempuh', trip.formattedDistance),
-                          _buildSummaryRow('Tanggal', '${trip.tripDate.day}/${trip.tripDate.month}/${trip.tripDate.year}'),
+                          _buildSummaryRow('Jenis Kendaraan', widget.trip.vehicleType),
+                          _buildSummaryRow('Kapasitas Mesin', '${widget.trip.engineCC} CC'),
+                          _buildSummaryRow('Jarak Tempuh', widget.trip.formattedDistance),
+                          _buildSummaryRow('Tanggal', '${widget.trip.tripDate.day}/${widget.trip.tripDate.month}/${widget.trip.tripDate.year}'),
                           
-                          if (trip.startLocation != null)
-                            _buildSummaryRow('Lokasi Awal', trip.startLocation!),
+                          if (widget.trip.startLocation != null)
+                            _buildSummaryRow('Lokasi Awal', widget.trip.startLocation!),
                           
-                          if (trip.endLocation != null)
-                            _buildSummaryRow('Lokasi Tujuan', trip.endLocation!),
+                          if (widget.trip.endLocation != null)
+                            _buildSummaryRow('Lokasi Tujuan', widget.trip.endLocation!),
                         ],
                       ),
                     ),
@@ -126,22 +216,22 @@ class TrackingResultScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: trip.emissionKg == 0.0 ? Colors.green.shade50 : Colors.red.shade50,
+                        color: widget.trip.emissionKg == 0.0 ? Colors.green.shade50 : Colors.red.shade50,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: trip.emissionKg == 0.0 ? Colors.green.shade200 : Colors.red.shade200
+                          color: widget.trip.emissionKg == 0.0 ? Colors.green.shade200 : Colors.red.shade200
                         ),
                       ),
                       child: Column(
                         children: [
                           Icon(
-                            trip.emissionKg == 0.0 ? Icons.eco : Icons.co2,
+                            widget.trip.emissionKg == 0.0 ? Icons.eco : Icons.co2,
                             size: 40,
-                            color: trip.emissionKg == 0.0 ? Colors.green.shade600 : Colors.red.shade600,
+                            color: widget.trip.emissionKg == 0.0 ? Colors.green.shade600 : Colors.red.shade600,
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            trip.emissionKg == 0.0 ? 'Emisi Karbon' : 'Emisi Karbon Dihasilkan',
+                            widget.trip.emissionKg == 0.0 ? 'Emisi Karbon' : 'Emisi Karbon Dihasilkan',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -150,16 +240,16 @@ class TrackingResultScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            trip.formattedEmission,
+                            widget.trip.formattedEmission,
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: trip.emissionKg == 0.0 ? Colors.green.shade600 : Colors.red.shade600,
+                              color: widget.trip.emissionKg == 0.0 ? Colors.green.shade600 : Colors.red.shade600,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            trip.emissionKg == 0.0 
+                            widget.trip.emissionKg == 0.0 
                                 ? 'Selamat! Perjalanan ini ramah lingkungan tanpa emisi karbon'
                                 : 'Perjalanan ini menghasilkan emisi karbon yang perlu di-offset',
                             style: GoogleFonts.poppins(
@@ -174,7 +264,7 @@ class TrackingResultScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Carbon Offset Info Card (only show if there are emissions)
-                    if (trip.emissionKg > 0.0) ...[
+                    if (widget.trip.emissionKg > 0.0) ...[
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
@@ -257,7 +347,7 @@ class TrackingResultScreen extends StatelessWidget {
                     Column(
                       children: [
                         // Only show donation button if there are emissions to offset
-                        if (trip.emissionKg > 0.0) ...[
+                        if (widget.trip.emissionKg > 0.0) ...[
                         PrimaryButton(
                           text: 'Donasi Carbon Offset',
                           onPressed: () {
@@ -301,7 +391,7 @@ class TrackingResultScreen extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // Additional Info
-                    if (trip.notes != null) ...[
+                    if (widget.trip.notes != null) ...[
                       CurvedContainer(
                         backgroundColor: Colors.white,
                         curveRadius: 16,
@@ -319,7 +409,7 @@ class TrackingResultScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              trip.notes!,
+                              widget.trip.notes!,
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: ColorPalette.textSecondary,

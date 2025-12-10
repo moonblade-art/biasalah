@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '/utils/color_palette.dart';
-import '/utils/trip_history.dart';
-import 'history_vehicle_screen.dart'; // ✅ Nama file yang benar
+import '../../../services/tracking_service.dart';
+import '../../../models/trip_tracking_model.dart';
+import 'history_vehicle_screen.dart'; // This is TripDetailScreen
 import 'history_offset_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -15,7 +17,8 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late Future<List<Map<String, dynamic>>> _tripsFuture;
+  late Future<List<TripTracking>> _tripsFuture;
+  final TrackingService _trackingService = TrackingService();
   bool _isDisposed = false;
 
   @override
@@ -35,15 +38,20 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
   void _refreshTrips() {
     if (!_isDisposed && mounted) {
       setState(() {
-        _tripsFuture = TripHistory.getTrips();
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null) {
+          _tripsFuture = _trackingService.getUserTrips(userId: user.id);
+        } else {
+          _tripsFuture = Future.value([]);
+        }
       });
     }
   }
 
-
-  String _formatDuration(int seconds) {
-    final h = seconds ~/ 3600;
-    final m = (seconds % 3600) ~/ 60;
+  String _formatDuration(int? minutes) {
+    if (minutes == null) return '0m';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
     if (h > 0) return "${h}j ${m}m";
     return "${m} menit";
   }
@@ -83,7 +91,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
           style: GoogleFonts.poppins(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isEmission && double.tryParse(value.split(' ')[0]) == 0
+            color: isEmission && (double.tryParse(value.split(' ')[0]) ?? 0) == 0
                 ? Colors.green
                 : Colors.black87,
           ),
@@ -142,7 +150,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                 controller: _tabController,
                 children: [
                   // Tab 1: Riwayat Perjalanan
-                  FutureBuilder<List<Map<String, dynamic>>>(
+                  FutureBuilder<List<TripTracking>>(
                     future: _tripsFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -158,33 +166,22 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                         child: isEmpty
                             ? _buildEmptyState()
                             : ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Add bottom padding for navigation
+                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                                 itemCount: trips.length,
                                 itemBuilder: (context, index) {
                                   final trip = trips[index];
-                                  final title = trip['title'] as String;
-                                  final timestamp = trip['timestamp'] as DateTime;
-                                  final formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(timestamp);
+                                  final title = trip.title ?? 'Perjalanan ${DateFormat('dd MMM').format(trip.tripDate)}';
+                                  final formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(trip.tripDate);
+                                  
                                   return GestureDetector(
                                     onTap: () {
-                                      if (mounted && !_isDisposed) {
-                                        // Show trip details in a dialog instead of navigating to missing screen
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: Text(title),
-                                            content: Text('Detail perjalanan: $formattedDate'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(context),
-                                                child: const Text('Tutup'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TripDetailScreen(trip: trip),
+                                        ),
+                                      );
                                     },
-                                    behavior: HitTestBehavior.opaque,
                                     child: Container(
                                       margin: const EdgeInsets.only(bottom: 16),
                                       padding: const EdgeInsets.all(16),
@@ -217,6 +214,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
+                                              Icon(Icons.chevron_right, color: Colors.grey[400]),
                                             ],
                                           ),
                                           const SizedBox(height: 8),
@@ -230,15 +228,15 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                                             children: [
                                               _buildStatItem(
                                                 label: "Jarak",
-                                                value: "${(trip['distance'] as double).toStringAsFixed(2)} km",
+                                                value: trip.formattedDistance,
                                               ),
                                               _buildStatItem(
                                                 label: "Waktu",
-                                                value: _formatDuration(trip['duration'] as int),
+                                                value: _formatDuration(trip.tripDurationMinutes),
                                               ),
                                               _buildStatItem(
                                                 label: "Emisi",
-                                                value: "${(trip['emission'] as double).toStringAsFixed(2)} kg",
+                                                value: trip.formattedEmission,
                                                 isEmission: true,
                                               ),
                                             ],
@@ -260,28 +258,6 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
             ),
           ],
         ),
-      ),
-      floatingActionButton: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _tripsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData &&
-              snapshot.data!.isNotEmpty) {
-            return FloatingActionButton(
-              backgroundColor: ColorPalette.primaryColor,
-              onPressed: () async {
-                await TripHistory.clearAllTrips();
-                _refreshTrips();
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Riwayat berhasil dihapus")),
-                );
-              },
-              child: const Icon(Icons.delete, color: Colors.white),
-            );
-          }
-          return const SizedBox();
-        },
       ),
     );
   }
