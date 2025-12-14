@@ -48,7 +48,7 @@ class _NavigationsState extends State<Navigations> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: ColorPalette.background,
 
       body: Builder(
         builder: (context) {

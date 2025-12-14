@@ -26,8 +26,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
+  bool _isObscureCurrent = true;
+  bool _isObscureNew = true;
+  bool _isObscureConfirm = true;
   
   UserProfile? _userProfile;
   bool _isLoading = true;
@@ -46,8 +51,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -73,8 +79,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _userProfile = profile;
           _nameController.text = profile.fullName;
           _emailController.text = profile.email;
-          _phoneController.text = profile.phone ?? '';
-          _addressController.text = profile.address ?? '';
+          // _phoneController.text = profile.phone ?? ''; // Removed
+          // _addressController.text = profile.address ?? ''; // Removed
           _currentImageUrl = profile.profilePictureUrl;
           _isLoading = false;
         });
@@ -223,24 +229,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         throw Exception('User tidak terautentikasi');
       }
 
+      // 1. Update Basic Profile (Name/Email/Image)
       // Upload image if selected
       String? imageUrl = _currentImageUrl;
-      
-      // Upload image if selected
       if (_selectedImage != null) {
         try {
           imageUrl = await _profileService.uploadProfilePicture(user.id, _selectedImage!);
         } catch (e) {
           _showSnackBar('Gagal mengupload gambar: ${e.toString()}', isError: true);
-          // Don't continue with profile update if image upload fails
-          setState(() {
-            _isSaving = false;
-          });
+          setState(() => _isSaving = false);
           return;
         }
       }
 
-      // Update profile only if image upload succeeded or no image selected
+      // Perform Profile Update
       final updatedProfile = await _profileService.updateProfile(
         userId: user.id,
         fullName: _nameController.text.trim() != _userProfile!.fullName 
@@ -249,14 +251,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         email: _emailController.text.trim() != _userProfile!.email 
             ? _emailController.text.trim() 
             : null,
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-        address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+        // Removed phone/address update
         profilePictureUrl: imageUrl != _currentImageUrl ? imageUrl : null,
       );
+
+      // 2. Handle Password Change
+      if (_newPasswordController.text.isNotEmpty) {
+        // Validation: Current Password must be provided
+        if (_currentPasswordController.text.isEmpty) {
+          throw Exception('Kata sandi saat ini wajib diisi');
+        }
+
+        // Re-authenticate to verify current password
+        try {
+          // Attempt sign in to verify credentials
+          await _authService.signIn(
+            email: user.email!, // Use current email
+            password: _currentPasswordController.text,
+          );
+          
+          // If successful, update to new password
+          await _authService.updatePassword(_newPasswordController.text);
+          
+          _showSnackBar('Password berhasil diubah');
+        } catch (e) {
+          throw Exception('Kata sandi saat ini salah atau gagal memverifikasi');
+        }
+      }
 
       setState(() {
         _userProfile = updatedProfile;
         _isSaving = false;
+        // Reset password fields
+        _currentPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
       });
 
       _showSnackBar('Profil berhasil diperbarui');
@@ -268,10 +297,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       print("Error saving profile: $e");
       if (mounted) {
         setState(() {
-          _errorMessage = "Gagal menyimpan profil: ${e.toString()}";
+          _errorMessage = "Gagal: ${e.toString().replaceAll('Exception:', '')}";
           _isSaving = false;
         });
-        _showSnackBar('Gagal menyimpan profil: ${e.toString()}', isError: true);
+        _showSnackBar(e.toString().replaceAll('Exception:', ''), isError: true);
       }
     }
   }
@@ -377,17 +406,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Phone Field
-                  _buildFormField(
-                    label: 'Nomor Telepon (Opsional)',
-                    controller: _phoneController,
-                    icon: Icons.phone,
-                    keyboardType: TextInputType.phone,
+                  const SizedBox(height: 30),
+                  const Divider(),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'Ubah Kata Sandi',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: ColorPalette.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Current Password
+                  _buildPasswordField(
+                    label: 'Kata Sandi Saat Ini',
+                    controller: _currentPasswordController,
+                    isObscure: _isObscureCurrent,
+                    onToggleObscure: () {
+                      setState(() {
+                        _isObscureCurrent = !_isObscureCurrent;
+                      });
+                    },
                     validator: (value) {
-                      if (value != null && value.trim().isNotEmpty) {
-                        if (value.trim().length < 10) {
-                          return 'Nomor telepon minimal 10 digit';
-                        }
+                       if (_newPasswordController.text.isNotEmpty && (value == null || value.isEmpty)) {
+                        return 'Kata sandi saat ini diperlukan untuk mengubah password';
                       }
                       return null;
                     },
@@ -395,17 +440,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Address Field
-                  _buildFormField(
-                    label: 'Alamat (Opsional)',
-                    controller: _addressController,
-                    icon: Icons.location_on,
-                    maxLines: 3,
+                  // New Password
+                  _buildPasswordField(
+                    label: 'Kata Sandi Baru',
+                    controller: _newPasswordController,
+                    isObscure: _isObscureNew,
+                    onToggleObscure: () {
+                      setState(() {
+                        _isObscureNew = !_isObscureNew;
+                      });
+                    },
                     validator: (value) {
-                      if (value != null && value.trim().isNotEmpty) {
-                        if (value.trim().length < 10) {
-                          return 'Alamat minimal 10 karakter';
-                        }
+                      if (value != null && value.isNotEmpty) {
+                        if (value.length < 8) return 'Minimal 8 karakter';
+                        if (!value.contains(RegExp(r'[A-Z]'))) return 'Harus ada huruf besar (A-Z)';
+                        if (!value.contains(RegExp(r'[a-z]'))) return 'Harus ada huruf kecil (a-z)';
+                        if (!value.contains(RegExp(r'[0-9]'))) return 'Harus ada angka (0-9)';
+                        if (!value.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'))) return 'Harus ada simbol (!@#\$%^&*)';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Syarat: Min 8 karakter, 1 Huruf Besar, 1 Huruf Kecil, 1 Angka, 1 Simbol',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Confirm Password
+                  _buildPasswordField(
+                    label: 'Konfirmasi Kata Sandi Baru',
+                    controller: _confirmPasswordController,
+                    isObscure: _isObscureConfirm,
+                    onToggleObscure: () {
+                      setState(() {
+                        _isObscureConfirm = !_isObscureConfirm;
+                      });
+                    },
+                    validator: (value) {
+                      if (_newPasswordController.text.isNotEmpty && value != _newPasswordController.text) {
+                        return 'Password tidak cocok';
                       }
                       return null;
                     },
@@ -600,6 +680,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           validator: validator,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: ColorPalette.primaryColor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: ColorPalette.primaryColor),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField({
+    required String label,
+    required TextEditingController controller,
+    required bool isObscure,
+    required VoidCallback onToggleObscure,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: ColorPalette.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: isObscure,
+          validator: validator,
+          decoration: InputDecoration(
+            prefixIcon: Icon(Icons.lock_outline, color: ColorPalette.primaryColor),
+            suffixIcon: IconButton(
+              icon: Icon(
+                isObscure ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey,
+              ),
+              onPressed: onToggleObscure,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey[300]!),

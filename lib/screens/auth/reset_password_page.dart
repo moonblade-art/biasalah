@@ -34,6 +34,15 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     super.dispose();
   }
 
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+  }
+
   Future<void> _resetPassword() async {
     final newPass = _newPass.text.trim();
     final confirmPass = _confirmPass.text.trim();
@@ -48,13 +57,24 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       return;
     }
 
-    if (newPass.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kata sandi minimal 6 karakter.'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+    if (newPass.length < 8) {
+      _showSnackBar('Password minimal 8 karakter');
+      return;
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(newPass)) {
+      _showSnackBar('Password harus ada huruf besar (A-Z)');
+      return;
+    }
+    if (!RegExp(r'[a-z]').hasMatch(newPass)) {
+      _showSnackBar('Password harus ada huruf kecil (a-z)');
+      return;
+    }
+    if (!RegExp(r'[0-9]').hasMatch(newPass)) {
+      _showSnackBar('Password harus ada angka (0-9)');
+      return;
+    }
+    if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(newPass)) {
+      _showSnackBar('Password harus ada simbol (!@#\$%^&*)');
       return;
     }
 
@@ -144,6 +164,15 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                       prefixIcon: Icons.lock_outline,
                       obscure: true,
                       controller: _newPass,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Syarat: Min 8 karakter, 1 Huruf Besar, 1 Huruf Kecil, 1 Angka, 1 Simbol',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     InputField(

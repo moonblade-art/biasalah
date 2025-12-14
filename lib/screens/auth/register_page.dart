@@ -59,8 +59,24 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    if (_password.text.length < 6) {
-      _showError('Password minimal 6 karakter');
+    if (_password.text.length < 8) {
+      _showError('Password minimal 8 karakter');
+      return;
+    }
+    if (!RegExp(r'[A-Z]').hasMatch(_password.text)) {
+      _showError('Password harus ada huruf besar (A-Z)');
+      return;
+    }
+    if (!RegExp(r'[a-z]').hasMatch(_password.text)) {
+      _showError('Password harus ada huruf kecil (a-z)');
+      return;
+    }
+    if (!RegExp(r'[0-9]').hasMatch(_password.text)) {
+      _showError('Password harus ada angka (0-9)');
+      return;
+    }
+    if (!RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(_password.text)) {
+      _showError('Password harus ada simbol (!@#\$%^&*)');
       return;
     }
 
@@ -186,6 +202,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       prefixIcon: Icons.lock_outline,
                       obscure: true,
                       controller: _password,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Syarat: Min 8 karakter, 1 Huruf Besar, 1 Huruf Kecil, 1 Angka, 1 Simbol',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     InputField(

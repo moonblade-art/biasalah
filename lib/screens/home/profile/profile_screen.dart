@@ -330,7 +330,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: Colors.white,
       curveRadius: 20,
       showShadow: true,
+      child: SizedBox(
+        height: 40,
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        dense: true,
+        visualDensity: VisualDensity.compact,
         leading: const Icon(Icons.logout_rounded, color: Color(0xFFD9534F)),
         title: Text(
           "Keluar",
@@ -343,6 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         trailing:
             const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFFD9534F)),
         onTap: _handleLogout,
+      ),
       ),
     );
   }

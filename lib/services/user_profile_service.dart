@@ -154,7 +154,8 @@ Future<String> uploadProfilePicture(String userId, File imageFile) async {
 
     // Tentukan ekstensi file
     final ext = imageFile.path.split('.').last;
-    final fileName = 'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    // Gunakan nama file tetap agar file lama tertimpa (menghemat storage)
+    final fileName = 'profile_$userId.$ext';
 
     // Path wajib sesuai rule RLS → /userId/filename
     final filePath = '$userId/$fileName';
