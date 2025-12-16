@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../models/donation_model.dart';
 import '../../../services/donation_service.dart';
@@ -60,6 +61,54 @@ class _HistoryOffsetScreenState extends State<HistoryOffsetScreen> {
         return _donations.where((d) => d.isFailed).toList();
       default:
         return _donations;
+    }
+  }
+
+  Future<void> _retryPayment(Donation donation) async {
+    if (donation.paymentUrl != null) {
+      final uri = Uri.parse(donation.paymentUrl!);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    }
+  }
+
+  Future<void> _cancelDonation(Donation donation) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Batalkan Donasi'),
+        content: const Text('Apakah Anda yakin ingin membatalkan donasi ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Tidak'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ya, Batalkan'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _donationService.cancelDonation(donation.id);
+        _loadDonations(); // Refresh data
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Donasi berhasil dibatalkan')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal membatalkan donasi: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -435,6 +484,24 @@ class _HistoryOffsetScreenState extends State<HistoryOffsetScreen> {
                     ),
                   ],
                 ),
+              ),
+            ],
+            
+            // Pay and Cancel buttons for pending donations
+            if (donation.isPending) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => _retryPayment(donation),
+                    child: const Text('Bayar'),
+                  ),
+                  TextButton(
+                    onPressed: () => _cancelDonation(donation),
+                    child: const Text('Batal'),
+                  ),
+                ],
               ),
             ],
           ],

@@ -184,10 +184,14 @@ class _DonationScreenState extends State<DonationScreen> {
         }
       }
 
-      // Navigate to donation history
+      // Navigate to history tab with bottom navigation visible
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          PageTransitionWidget.createRoute(const DonationHistoryScreen()),
+          PageTransitionWidget.createRoute(
+            Navigations(
+              initialPage: 1, // History tab (index 1)
+            ),
+          ),
         );
       }
     } catch (e) {
