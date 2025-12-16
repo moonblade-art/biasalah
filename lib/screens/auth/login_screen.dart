@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/input_field.dart';
@@ -33,14 +34,46 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
+  int _failedAttempts = 0;
+  bool _isLocked = false;
+  int _lockoutTime = 0;
+  Timer? _lockoutTimer;
+
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _lockoutTimer?.cancel();
     super.dispose();
   }
 
+  void _startLockout(int seconds) {
+    setState(() {
+      _isLocked = true;
+      _lockoutTime = seconds;
+      _failedAttempts = 0; // Reset attempts after lockout starts
+    });
+
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      
+      setState(() {
+        if (_lockoutTime > 0) {
+          _lockoutTime--;
+        } else {
+          _isLocked = false;
+          timer.cancel();
+        }
+      });
+    });
+  }
+
   Future<void> _handleLogin() async {
+    if (_isLocked) return;
+
     // Clear previous error
     setState(() {
       _errorMessage = null;
@@ -65,6 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _password.text,
       );
 
+      // Reset failed attempts on success
+      _failedAttempts = 0;
+
       if (response.user != null) {
         // Check if email is verified
         if (!_authService.isEmailVerified()) {
@@ -83,7 +119,22 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } on app_auth.AppAuthException catch (e) {
-      _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+      if (e.code == 'invalid_credentials' || e.code == 'wrong_password') {
+        _failedAttempts++;
+        if (_failedAttempts >= 5) {
+          _startLockout(60); // Lock for 60 seconds after 5 failed attempts
+          _showError('Terlalu banyak percobaan gagal. Silakan tunggu 60 detik.');
+        } else if (_failedAttempts >= 3) {
+           _showError('Password salah. Sisa percobaan: ${5 - _failedAttempts}');
+        } else {
+           _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+        }
+      } else if (e.code == 'rate_limit_exceeded') {
+         _startLockout(60); // Server side rate limit hit
+         _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+      } else {
+        _showError(app_auth.AppAuthException.getUserFriendlyMessage(e.code));
+      }
     } catch (e) {
       _showError('Terjadi kesalahan. Silakan coba lagi.');
     }
@@ -241,9 +292,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                     const SizedBox(height: 28),
                     PrimaryButton(
-                      text: "Masuk",
+                      text: _isLocked ? "Tunggu ${_lockoutTime}s" : "Masuk",
                       isLoading: _isLoading,
-                      onPressed: _isLoading ? null : _handleLogin,
+                      onPressed: (_isLoading || _isLocked) ? null : _handleLogin,
                     ),
                     const SizedBox(height: 10),
                     TextButton(

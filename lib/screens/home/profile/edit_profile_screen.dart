@@ -229,12 +229,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         throw Exception('User tidak terautentikasi');
       }
 
-      // 1. Update Basic Profile (Name/Email/Image)
+      UserProfile? currentProfile = _userProfile;
+      bool profileUpdated = false;
+      bool passwordUpdated = false;
+
+      // 1. Prepare Profile Updates
+      String? fullNameToUpdate;
+      String? emailToUpdate;
+      String? imageUrlToUpdate;
+
+      // Check Name
+      if (_nameController.text.trim() != _userProfile!.fullName) {
+        fullNameToUpdate = _nameController.text.trim();
+      }
+
+      // Check Email
+      if (_emailController.text.trim() != _userProfile!.email) {
+        emailToUpdate = _emailController.text.trim();
+      }
+
+      // Check Image
       // Upload image if selected
-      String? imageUrl = _currentImageUrl;
       if (_selectedImage != null) {
         try {
-          imageUrl = await _profileService.uploadProfilePicture(user.id, _selectedImage!);
+          final uploadedUrl = await _profileService.uploadProfilePicture(user.id, _selectedImage!);
+          if (uploadedUrl != _currentImageUrl) {
+            imageUrlToUpdate = uploadedUrl;
+          }
         } catch (e) {
           _showSnackBar('Gagal mengupload gambar: ${e.toString()}', isError: true);
           setState(() => _isSaving = false);
@@ -242,20 +263,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         }
       }
 
-      // Perform Profile Update
-      final updatedProfile = await _profileService.updateProfile(
-        userId: user.id,
-        fullName: _nameController.text.trim() != _userProfile!.fullName 
-            ? _nameController.text.trim() 
-            : null,
-        email: _emailController.text.trim() != _userProfile!.email 
-            ? _emailController.text.trim() 
-            : null,
-        // Removed phone/address update
-        profilePictureUrl: imageUrl != _currentImageUrl ? imageUrl : null,
-      );
+      // 2. Perform Profile Update if needed
+      if (fullNameToUpdate != null || emailToUpdate != null || imageUrlToUpdate != null) {
+        try {
+          final updated = await _profileService.updateProfile(
+            userId: user.id,
+            fullName: fullNameToUpdate,
+            email: emailToUpdate,
+            profilePictureUrl: imageUrlToUpdate,
+          );
+          currentProfile = updated;
+          profileUpdated = true;
+        } catch (e) {
+          // If profile update fails, we should stop and show error
+           throw Exception(e.toString().replaceAll('Exception:', ''));
+        }
+      }
 
-      // 2. Handle Password Change
+      // 3. Handle Password Change
       if (_newPasswordController.text.isNotEmpty) {
         // Validation: Current Password must be provided
         if (_currentPasswordController.text.isEmpty) {
@@ -272,15 +297,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           
           // If successful, update to new password
           await _authService.updatePassword(_newPasswordController.text);
+          passwordUpdated = true;
           
-          _showSnackBar('Password berhasil diubah');
         } catch (e) {
-          throw Exception('Kata sandi saat ini salah atau gagal memverifikasi');
+          // Improve error message based on exception type if possible, 
+          // generally Supabase/Authservice throws legible exceptions or we catch them here.
+          String msg = e.toString();
+          if (msg.toLowerCase().contains('invalid login credentials') || msg.toLowerCase().contains('wrong password')) {
+             throw Exception('Kata sandi saat ini salah');
+          } else {
+             throw Exception('Gagal mengubah password: ${msg.replaceAll('Exception:', '')}');
+          }
         }
       }
 
+      if (!profileUpdated && !passwordUpdated) {
+        _showSnackBar('Tidak ada perubahan yang disimpan');
+        setState(() => _isSaving = false);
+        return;
+      }
+
       setState(() {
-        _userProfile = updatedProfile;
+        _userProfile = currentProfile;
         _isSaving = false;
         // Reset password fields
         _currentPasswordController.clear();
@@ -288,10 +326,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _confirmPasswordController.clear();
       });
 
-      _showSnackBar('Profil berhasil diperbarui');
+      String successMsg = '';
+      if (profileUpdated && passwordUpdated) {
+        successMsg = 'Profil dan password berhasil diperbarui';
+      } else if (profileUpdated) {
+        successMsg = 'Profil berhasil diperbarui';
+      } else {
+        successMsg = 'Password berhasil diubah';
+      }
+
+      _showSnackBar(successMsg);
 
       if (mounted) {
-        Navigator.pop(context, true);
+        // Wait a bit to let user see the success message
+        Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) Navigator.pop(context, true);
+        });
       }
     } catch (e) {
       print("Error saving profile: $e");

@@ -55,6 +55,8 @@ class AppAuthException implements Exception {
       return AppAuthException('Email sudah digunakan', 'email_already_in_use');
     } else if (error.toString().contains('Password should be at least')) {
       return AppAuthException('Password terlalu lemah', 'weak_password');
+    } else if (error.toString().contains('Too many requests') || error.toString().contains('429')) {
+      return AppAuthException('Terlalu banyak percobaan. Silakan tunggu beberapa saat.', 'rate_limit_exceeded');
     } else {
       return AppAuthException(error.toString(), 'unknown_error');
     }
