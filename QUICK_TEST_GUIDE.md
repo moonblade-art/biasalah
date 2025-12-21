@@ -1,9 +1,12 @@
 # 🚀 Quick Test Guide - Midtrans Integration
 
 ## ✅ **Credentials Configured**
-- **Merchant ID**: `G073857189`
-- **Client Key**: `Mid-client-choJmn3fHeXuhrNNM`
+- **Merchant ID**: `YOUR_MIDTRANS_MERCHANT_ID`
+- **Client Key**: `YOUR_MIDTRANS_CLIENT_KEY`
 - **Server Key**: `YOUR_MIDTRANS_SERVER_KEY`
+
+> [!IMPORTANT]
+> **Security Warning**: Real production keys must never be committed to the repository. Store them securely in environment variables (.env), Supabase Secrets, or a dedicated secret manager.
 
 ## 🔧 **Step 1: Deploy Backend**
 
@@ -71,7 +74,7 @@ curl -X GET "https://YOUR_PROJECT_REF.supabase.co/functions/v1/midtrans-payment/
     }
   },
   "credentials": {
-    "merchant_id": "G073857189",
+    "merchant_id": "YOUR_MIDTRANS_MERCHANT_ID",
     "client_key": "present",
     "server_key": "present"
   }

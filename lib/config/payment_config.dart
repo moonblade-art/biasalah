@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 class PaymentConfig {
   // Environment configuration
-  static const bool isProduction = false; // Set to true for production
+  static const bool isProduction = kReleaseMode; // Automatically true for release builds
   static bool get isDevelopment => !isProduction;
 
   static const String sandboxUrl = 'https://app.sandbox.midtrans.com';
