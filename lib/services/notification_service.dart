@@ -2,6 +2,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/notification_model.dart';
+
 import 'auth_exception.dart' as app_auth;
 
 class NotificationService {

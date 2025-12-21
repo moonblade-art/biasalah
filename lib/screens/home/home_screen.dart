@@ -163,6 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const BouncingScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 100),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -266,48 +267,49 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  ),
                 ),
+              ),
 
-                const SizedBox(height: 24),
-                CurvedContainer(
-                  backgroundColor: ColorPalette.secondary,
-                  curveRadius: 30,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Total Emisi CO₂",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          color: ColorPalette.textPrimary,
-                          fontWeight: FontWeight.w600,
+              const SizedBox(height: 24),
+              CurvedContainer(
+                backgroundColor: ColorPalette.secondary,
+                curveRadius: 30,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Total Emisi CO₂",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        color: ColorPalette.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Simplified layout without LayoutBuilder to prevent mouse tracker issues
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: _buildEmisiCard(
+                            title: "Sudah di-offset",
+                            value: "${(_userProfile?.emisiOffset ?? 0).toStringAsFixed(1)} Kg",
+                            isSmallScreen: MediaQuery.of(context).size.width < 400,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Simplified layout without LayoutBuilder to prevent mouse tracker issues
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: _buildEmisiCard(
-                              title: "Sudah di-offset",
-                              value: "${(_userProfile?.emisiOffset ?? 0).toStringAsFixed(1)} Kg",
-                              isSmallScreen: MediaQuery.of(context).size.width < 400,
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildEmisiCard(
+                            title: "Belum di-offset",
+                            value: "${(_userProfile?.emisiBelum ?? 0).toStringAsFixed(1)} Kg",
+                            isSmallScreen: MediaQuery.of(context).size.width < 400,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildEmisiCard(
-                              title: "Belum di-offset",
-                              value: "${(_userProfile?.emisiBelum ?? 0).toStringAsFixed(1)} Kg",
-                              isSmallScreen: MediaQuery.of(context).size.width < 400,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+
                       const SizedBox(height: 16),
                       Center(
                         child: SizedBox(
@@ -324,6 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               );
+
                             },
                           ),
                         ),
@@ -402,6 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 280, // Reduced width for better fit
                               decoration: BoxDecoration(
                                 color: Colors.white38,
+
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(

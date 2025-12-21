@@ -1,14 +1,17 @@
 import 'dart:convert';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/donation_model.dart';
 import '../models/community_model.dart';
 import '../services/community_service.dart';
 import '../config/payment_config.dart';
+
 import 'auth_exception.dart' as app_auth;
 
 class DonationService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final CommunityService _communityService = CommunityService();
+
 
   /// Create a new donation
   Future<Donation> createDonation({
@@ -36,6 +39,7 @@ class DonationService {
       // Validate minimum donation
       if (donationAmount < PaymentConfig.minimumDonation) {
         throw app_auth.AppAuthException('Donasi minimum Rp ${PaymentConfig.minimumDonation}', 'minimum_donation_not_met');
+
       }
 
       // Check user's available carbon offset
@@ -100,6 +104,7 @@ class DonationService {
   }
 
   /// Create Midtrans payment via Supabase Edge Function
+
   Future<String> _createMidtransPayment({
     required Donation donation,
     required Community community,
@@ -354,11 +359,13 @@ class DonationService {
         'total_donations': 0,
         'total_amount_donated': 0.0,
         'total_carbon_offset_donated': 0.0,
+
       };
     }
   }
 
   /// Helper to get user profile
+
   Future<Map<String, dynamic>?> _getUserProfile(String userId) async {
     try {
       final response = await _supabase
@@ -366,6 +373,7 @@ class DonationService {
           .select()
           .eq('id', userId)
           .maybeSingle();
+
       return response;
     } catch (e) {
       return null;

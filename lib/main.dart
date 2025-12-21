@@ -17,6 +17,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/home/profile/profile_screen.dart';
 import 'screens/home/donation/donation_screen.dart';
 import 'screens/home/community/comunity_screen.dart';
+
 import 'screens/home/history/history_offset_screen.dart';
 import 'screens/home/notifications/notification_screen.dart';
 import 'screens/home/notifications/edit_notification_screen.dart';
@@ -53,6 +54,7 @@ class EcoTrackApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Poppins',
+
         scaffoldBackgroundColor: ColorPalette.background,
         colorScheme: ColorScheme.fromSeed(seedColor: ColorPalette.primaryColor),
         useMaterial3: true,
@@ -130,6 +132,7 @@ class EcoTrackApp extends StatelessWidget {
 
         return null;
       },
+
     );
   }
 }
@@ -146,6 +149,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   final SupabaseAuthService _authService = SupabaseAuthService();
   bool _isLoading = true;
   Widget? _targetWidget;
+  bool _hasCheckedAuth = false; // Prevent multiple auth checks
 
   @override
   void initState() {
@@ -154,6 +158,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuthState() async {
+    if (_hasCheckedAuth) return; // Prevent multiple calls
+    _hasCheckedAuth = true;
+    
     try {
       final isAuthenticated = _authService.isSignedIn() &&
           _authService.isEmailVerified();
@@ -167,6 +174,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _targetWidget = const WelcomePage();
         _isLoading = false;
       });
+
     }
   }
 

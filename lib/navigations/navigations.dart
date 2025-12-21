@@ -8,6 +8,8 @@ import '../screens/home/profile/profile_screen.dart';
 import '../screens/home/donation/donation_screen.dart';
 import '../screens/home/history/history_screen.dart';
 
+
+
 import '../models/community_model.dart';
 import '../utils/color_palette.dart';
 
@@ -35,11 +37,11 @@ class _NavigationsState extends State<Navigations> {
   }
 
   final List<Widget> _pages = [
-    VehicleChooseScreen(),
-    HistoryScreen(),
-    HomeScreen(),
-    DonationScreen(),
-    ProfileScreen(),
+    const VehicleChooseScreen(),
+    const HistoryScreen(),
+    const HomeScreen(),
+    const DonationScreen(),
+    const ProfileScreen(),
   ];
 
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
@@ -58,6 +60,7 @@ class _NavigationsState extends State<Navigations> {
               children: _pages,
             );
           } catch (e) {
+
             return Container(
               color: ColorPalette.background,
               child: Center(
@@ -75,6 +78,7 @@ class _NavigationsState extends State<Navigations> {
                       onPressed: () {
                         setState(() {
                           _page = 2;
+
                         });
                       },
                       child: const Text('Kembali ke Home'),

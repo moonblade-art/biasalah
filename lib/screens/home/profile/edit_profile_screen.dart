@@ -33,6 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isObscureCurrent = true;
   bool _isObscureNew = true;
   bool _isObscureConfirm = true;
+
   
   UserProfile? _userProfile;
   bool _isLoading = true;
@@ -54,6 +55,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
+
     super.dispose();
   }
 
@@ -81,6 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _emailController.text = profile.email;
           // _phoneController.text = profile.phone ?? ''; // Removed
           // _addressController.text = profile.address ?? ''; // Removed
+
           _currentImageUrl = profile.profilePictureUrl;
           _isLoading = false;
         });
@@ -205,6 +208,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           });
         }
       }
+
     } catch (e) {
       // Handle MissingPluginException gracefully
       if (e.toString().contains('MissingPluginException')) {
@@ -352,6 +356,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
         _showSnackBar(e.toString().replaceAll('Exception:', ''), isError: true);
       }
+
     }
   }
 
@@ -453,9 +458,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       return null;
                     },
                   ),
-
-                  const SizedBox(height: 20),
-
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 20),
@@ -483,8 +485,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     validator: (value) {
                        if (_newPasswordController.text.isNotEmpty && (value == null || value.isEmpty)) {
                         return 'Kata sandi saat ini diperlukan untuk mengubah password';
-                      }
-                      return null;
+                       }
+                       return null;
                     },
                   ),
 
@@ -594,6 +596,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             const SizedBox(height: 20),
 
+
+
             // Error Message
             if (_errorMessage != null) ...[
               const SizedBox(height: 20),
@@ -669,6 +673,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         )
                       : _buildDefaultAvatar(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton.icon(
+            onPressed: kIsWeb ? null : _pickImage, // Disable on web for now
+            icon: Icon(Icons.camera_alt, color: ColorPalette.primaryColor),
+            label: Text(
+              kIsWeb ? 'Upload Foto (Coming Soon)' : 'Ubah Foto',
+              style: GoogleFonts.poppins(
+                color: ColorPalette.primaryColor,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
 

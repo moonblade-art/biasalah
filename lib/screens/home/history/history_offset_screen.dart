@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+
 import '../../../models/donation_model.dart';
 import '../../../services/donation_service.dart';
 import '../../../utils/color_palette.dart';
@@ -486,7 +487,6 @@ class _HistoryOffsetScreenState extends State<HistoryOffsetScreen> {
                 ),
               ),
             ],
-            
             // Pay and Cancel buttons for pending donations
             if (donation.isPending) ...[
               const SizedBox(height: 12),
@@ -504,6 +504,7 @@ class _HistoryOffsetScreenState extends State<HistoryOffsetScreen> {
                 ],
               ),
             ],
+
           ],
         ),
       ),

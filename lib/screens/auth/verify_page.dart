@@ -107,6 +107,42 @@ class _VerifyPageState extends State<VerifyPage> {
     }
   }
 
+  Timer? _checkTimer;
+  bool _isCheckingVerification = false;
+
+  void _startPeriodicCheck() {
+    // Reduced frequency and added safety checks
+    _checkTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted && !_isCheckingVerification) {
+        _checkVerificationStatus();
+      }
+    });
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    if (_isCheckingVerification || !mounted) return;
+    
+    setState(() => _isCheckingVerification = true);
+    
+    try {
+      // Refresh session to get latest user data with timeout
+      await Supabase.instance.client.auth.refreshSession()
+          .timeout(const Duration(seconds: 8));
+      
+      if (mounted && _authService.isEmailVerified()) {
+        // Email is verified, create profile and navigate
+        await _handleVerifiedUser();
+      }
+    } catch (e) {
+      // Ignore errors during periodic check
+      print('Verification check error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isCheckingVerification = false);
+      }
+    }
+  }
+
   Future<void> _handleVerifiedUser() async {
     try {
       final user = _authService.getCurrentUser();

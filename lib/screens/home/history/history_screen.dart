@@ -6,6 +6,7 @@ import '/utils/color_palette.dart';
 import '../../../services/tracking_service.dart';
 import '../../../models/trip_tracking_model.dart';
 import 'history_vehicle_screen.dart'; // This is TripDetailScreen
+
 import 'history_offset_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -167,6 +168,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
                             ? _buildEmptyState()
                             : ListView.builder(
                                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+
                                 itemCount: trips.length,
                                 itemBuilder: (context, index) {
                                   final trip = trips[index];

@@ -82,8 +82,8 @@ Update file konfigurasi dengan API keys Midtrans yang sudah disediakan:
 
 ```dart
 // lib/services/donation_service.dart
-  static const String _midtransServerKey = 'YOUR_MIDTRANS_SERVER_KEY';
-  static const String _midtransClientKey = 'YOUR_MIDTRANS_CLIENT_KEY';
+   static const String _midtransServerKey = 'G073857189Mid-server-BrqF8_t27GteS8g6TNjSdg_Z';
+   static const String _midtransClientKey = 'G073857189Mid-client-choJmn3fHeXuhrNNM';
 ```
 
 ### 4. **Update Navigation Routes**

@@ -1,7 +1,6 @@
 // lib/widgets/safe_circle_avatar.dart
 
 import 'package:flutter/material.dart';
-
 /// Safe CircleAvatar with backward compatibility.
 class SafeCircleAvatar extends StatelessWidget {
   final double radius;
@@ -14,13 +13,14 @@ class SafeCircleAvatar extends StatelessWidget {
   final Color? backgroundColor;
   final Color? iconColor;
 
-  SafeCircleAvatar({
+  const SafeCircleAvatar({
     super.key,
     required this.radius,
     this.imageUrl,
     this.fallbackText, // ← tetap ada agar tidak error
     this.backgroundColor,
     this.iconColor,
+
   });
 
   @override
@@ -28,6 +28,7 @@ class SafeCircleAvatar extends StatelessWidget {
     final hasValidUrl = imageUrl != null &&
         imageUrl!.trim().isNotEmpty &&
         (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://'));
+
 
     return CircleAvatar(
       radius: radius,
@@ -50,3 +51,4 @@ class SafeCircleAvatar extends StatelessWidget {
     );
   }
 }
+

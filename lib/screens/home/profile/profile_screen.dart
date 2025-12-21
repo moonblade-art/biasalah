@@ -116,6 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,6 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _error != null
                 ? _buildErrorView()
+
                 : RefreshIndicator(
                     onRefresh: () async {
                       await _loadUserProfile();
@@ -152,8 +154,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-  // ----------------------------- UI Components ------------------------------
 
   Widget _buildHeader() {
     return Container(
