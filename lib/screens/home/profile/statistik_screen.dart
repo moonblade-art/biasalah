@@ -255,7 +255,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
                 LinearProgressIndicator(
                   value: offsetPercentage / 100,
                   backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(ColorPalette.primaryColor),
+                  valueColor: const AlwaysStoppedAnimation<Color>(ColorPalette.primaryColor),
                   minHeight: 8,
                 ),
               ],

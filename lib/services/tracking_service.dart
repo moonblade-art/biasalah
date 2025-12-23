@@ -125,7 +125,7 @@ class TrackingService {
           .range(offset, offset + limit - 1);
 
       // Filter results in memory (not ideal but works for now)
-      List<Map<String, dynamic>> filteredResults = (response as List<Map<String, dynamic>>)
+      List<Map<String, dynamic>> filteredResults = (response)
           .where((trip) => trip['user_id'] == userId)
           .toList();
 
@@ -203,8 +203,7 @@ class TrackingService {
     int days = 30,
   }) async {
     try {
-      final endDate = DateTime.now();
-      final startDate = endDate.subtract(Duration(days: days));
+      // Statistics for the last [days] days
 
       final response = await _supabase
           .from('tracking_summary')

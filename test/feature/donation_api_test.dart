@@ -230,18 +230,18 @@ void main() {
       // Demonstrating various assertion equivalents
       
       // 1. assertStatus(200) equivalent
-      final status200 = 200;
+      const status200 = 200;
       expect(status200, equals(200));
       
       // 2. assertOk() equivalent
       expect(status200, equals(200));
       
       // 3. assertCreated() equivalent
-      final status201 = 201;
+      const status201 = 201;
       expect(status201, equals(201));
       
       // 4. assertNotFound() equivalent
-      final status404 = 404;
+      const status404 = 404;
       expect(status404, equals(404));
       
       // 5. assertJsonCount() equivalent

@@ -104,7 +104,7 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
           ),
           const SizedBox(height: 16),
           
-          ...faqs.map((faq) => _buildFAQItem(faq)).toList(),
+          ...faqs.map((faq) => _buildFAQItem(faq)),
         ],
       ),
     );
@@ -126,6 +126,8 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
               color: ColorPalette.textPrimary,
             ),
           ),
+          tilePadding: EdgeInsets.zero,
+          childrenPadding: EdgeInsets.zero,
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -139,8 +141,6 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
               ),
             ),
           ],
-          tilePadding: EdgeInsets.zero,
-          childrenPadding: EdgeInsets.zero,
         ),
       ),
     );
@@ -164,7 +164,7 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
           ),
           const SizedBox(height: 16),
           
-          ...tutorials.map((tutorial) => _buildTutorialItem(tutorial)).toList(),
+          ...tutorials.map((tutorial) => _buildTutorialItem(tutorial)),
         ],
       ),
     );
@@ -228,7 +228,7 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
                     Container(
                       width: 20,
                       height: 20,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: ColorPalette.primaryColor,
                         shape: BoxShape.circle,
                       ),
@@ -256,7 +256,7 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -514,7 +514,7 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
               ),
               selectedColor: ColorPalette.primaryColor,
               backgroundColor: Colors.white,
-              side: BorderSide(color: ColorPalette.primaryColor),
+              side: const BorderSide(color: ColorPalette.primaryColor),
               onSelected: (selected) {
                 setState(() {
                   _selectedCategory = entry.key;
@@ -556,7 +556,7 @@ class _BantuanMasukanScreenState extends State<BantuanMasukanScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: ColorPalette.primaryColor, width: 2),
+          borderSide: const BorderSide(color: ColorPalette.primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

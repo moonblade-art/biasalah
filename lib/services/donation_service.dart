@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/donation_model.dart';
@@ -315,7 +314,7 @@ class DonationService {
           .single();
 
       return response;
-    } on PostgrestException catch (e) {
+    } on PostgrestException {
       // Return default values if no donations found
       return {
         'total_donations': 0,

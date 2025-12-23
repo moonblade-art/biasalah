@@ -9,7 +9,7 @@ void main() {
     // Test 1: Email Validation
     test('UNIT-AUTH-001: Valid email format returns true', () {
       // Arrange
-      final validEmail = 'test@example.com';
+      const validEmail = 'test@example.com';
       
       // Act
       final result = isValidEmail(validEmail);
@@ -29,7 +29,7 @@ void main() {
     
     // Test 2: Password Strength Validation
     test('UNIT-AUTH-003: Strong password meets all criteria', () {
-      final strongPassword = 'Test123!@#';
+      const strongPassword = 'Test123!@#';
       
       final strength = calculatePasswordStrength(strongPassword);
       
@@ -41,7 +41,7 @@ void main() {
     });
     
     test('UNIT-AUTH-004: Weak password has low strength score', () {
-      final weakPassword = 'weak';
+      const weakPassword = 'weak';
       
       final strength = calculatePasswordStrength(weakPassword);
       
@@ -57,8 +57,8 @@ void main() {
     
     // Test 4: Login Credentials Validation
     test('UNIT-AUTH-006: Valid credentials pass validation', () {
-      final email = 'user@test.com';
-      final password = 'ValidPass123!';
+      const email = 'user@test.com';
+      const password = 'ValidPass123!';
       
       final isValid = validateLoginCredentials(email, password);
       

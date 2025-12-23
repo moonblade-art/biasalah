@@ -165,10 +165,10 @@ void main() {
     });
     
     test('PROFILE-DEMO-002: Emission calculation logic', () {
-      final emisiOffset = 50.0;
-      final emisiBelum = 25.5;
+      const emisiOffset = 50.0;
+      const emisiBelum = 25.5;
       
-      final totalEmissions = emisiOffset + emisiBelum;
+      const totalEmissions = emisiOffset + emisiBelum;
       
       expect(totalEmissions, equals(75.5));
       expect(emisiOffset, greaterThan(emisiBelum));

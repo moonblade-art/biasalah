@@ -8,7 +8,6 @@ import '../../widgets/back_button.dart';
 import '../../widgets/page_transition.dart';
 import '../../utils/color_palette.dart';
 import '../../services/supabase_auth_service.dart';
-import '../../services/user_profile_service.dart';
 import '../../services/auth_exception.dart' as app_auth;
 import 'login_screen.dart';
 import 'verify_page.dart';
@@ -27,7 +26,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _confirmPassword = TextEditingController();
   
   final SupabaseAuthService _authService = SupabaseAuthService();
-  final UserProfileService _profileService = UserProfileService();
+  
+
   
   bool _isLoading = false;
   String? _errorMessage;
@@ -270,11 +270,11 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-            SafeArea(
+            const SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(left: 0, top: 16),
+              padding: EdgeInsets.only(left: 0, top: 16),
               child: BackButtonWidget(
-              previousPage: const LoginScreen(),
+              previousPage: LoginScreen(),
               ),
             ),
           ),

@@ -11,7 +11,6 @@ import '../../utils/color_palette.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../services/auth_exception.dart' as app_auth;
 import 'login_screen.dart';
-import 'reset_password_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -242,11 +241,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
           ),
-          SafeArea(
+          const SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(left: 0, top: 16),
+              padding: EdgeInsets.only(left: 0, top: 16),
               child: BackButtonWidget(
-                previousPage: const LoginScreen(),
+                previousPage: LoginScreen(),
               ),
             ),
           ),

@@ -17,7 +17,7 @@ class Navigations extends StatefulWidget {
   final int initialPage;
   final Community? community;
 
-  Navigations({
+  const Navigations({
     super.key,
     this.initialPage = 2,
     this.community,
@@ -95,7 +95,7 @@ class _NavigationsState extends State<Navigations> {
         key: _bottomNavigationKey,
         index: _page,
         height: 65,
-        items: <Widget>[
+        items: const <Widget>[
           Icon(Icons.location_on, size: 30, color: Colors.white),
           Icon(Icons.history, size: 30, color: Colors.white),
           Icon(Icons.home, size: 30, color: Colors.white),

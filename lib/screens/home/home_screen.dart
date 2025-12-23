@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'community/comunity_screen.dart';
-import 'donation/donation_screen.dart';
 import '../home/notifications/notification_screen.dart';
 import '/navigations/navigations.dart';
 
@@ -18,7 +17,6 @@ import '../../widgets/curved_container.dart';
 import '../../widgets/page_transition.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/safe_circle_avatar.dart';
-import '../../utils/color_palette.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -295,7 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: _buildEmisiCard(
                             title: "Sudah di-offset",
-                            value: "${(_userProfile?.emisiOffset ?? 0).toStringAsFixed(1)} Kg",
+                            value: "${(_userProfile?.emisiOffset ?? 0).toStringAsFixed(1)}",
+                            unit: "Kg",
+                            icon: Icons.check_circle_outline,
                             isSmallScreen: MediaQuery.of(context).size.width < 400,
                           ),
                         ),
@@ -303,7 +303,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: _buildEmisiCard(
                             title: "Belum di-offset",
-                            value: "${(_userProfile?.emisiBelum ?? 0).toStringAsFixed(1)} Kg",
+                            value: "${(_userProfile?.emisiBelum ?? 0).toStringAsFixed(1)}",
+                            unit: "Kg",
+                            icon: Icons.pending_actions,
                             isSmallScreen: MediaQuery.of(context).size.width < 400,
                           ),
                         ),
@@ -321,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => Navigations(
+                                  builder: (_) => const Navigations(
                                     initialPage: 3,
                                   ),
                                 ),
@@ -407,11 +409,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.white38,
 
                                 borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Colors.black12,
                                     blurRadius: 6,
-                                    offset: const Offset(0, 3),
+                                    offset: Offset(0, 3),
                                   ),
                                 ],
                               ),
@@ -576,7 +578,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildEmisiCard({
     required String title,
     required String value,
-    double opacity = 1.0,
+    String? unit,
+    required IconData icon,
     bool isSmallScreen = false,
   }) {
     return Container(
@@ -584,36 +587,63 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white38,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 6,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: isSmallScreen ? 11 : 13,
-              color: ColorPalette.textPrimary,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: ColorPalette.textPrimary,
+                size: isSmallScreen ? 14 : 16,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: isSmallScreen ? 10 : 12,
+                    color: ColorPalette.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: isSmallScreen ? 4 : 6),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: isSmallScreen ? 16 : 20,
-              color: ColorPalette.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+          RichText(
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: value,
+                  style: GoogleFonts.poppins(
+                    fontSize: isSmallScreen ? 16 : 20,
+                    color: ColorPalette.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 10 : 12,
+                      color: ColorPalette.textPrimary.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

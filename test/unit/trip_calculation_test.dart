@@ -10,10 +10,10 @@ void main() {
     // Test 1: Distance Calculation (Haversine Formula)
     test('UNIT-TRIP-001: Distance between two points calculated correctly', () {
       // Jakarta to Bandung (approx 120 km)
-      final lat1 = -6.2088; // Jakarta
-      final lon1 = 106.8456;
-      final lat2 = -6.9175; // Bandung
-      final lon2 = 107.6191;
+      const lat1 = -6.2088; // Jakarta
+      const lon1 = 106.8456;
+      const lat2 = -6.9175; // Bandung
+      const lon2 = 107.6191;
       
       final distance = calculateDistance(lat1, lon1, lat2, lon2);
       
@@ -24,8 +24,8 @@ void main() {
     
     // Test 2: Zero Distance (Same Location)
     test('UNIT-TRIP-002: Same coordinates return zero distance', () {
-      final lat = -6.2088;
-      final lon = 106.8456;
+      const lat = -6.2088;
+      const lon = 106.8456;
       
       final distance = calculateDistance(lat, lon, lat, lon);
       
@@ -46,8 +46,8 @@ void main() {
     
     // Test 4: Average Speed Calculation
     test('UNIT-TRIP-004: Average speed calculated correctly', () {
-      final distance = 60.0; // km
-      final duration = Duration(hours: 1); // 1 hour
+      const distance = 60.0; // km
+      const duration = Duration(hours: 1); // 1 hour
       
       final avgSpeed = calculateAverageSpeed(distance, duration);
       
@@ -55,8 +55,8 @@ void main() {
     });
     
     test('UNIT-TRIP-005: Average speed with minutes', () {
-      final distance = 30.0; // km
-      final duration = Duration(minutes: 30); // 0.5 hour
+      const distance = 30.0; // km
+      const duration = Duration(minutes: 30); // 0.5 hour
       
       final avgSpeed = calculateAverageSpeed(distance, duration);
       
@@ -74,7 +74,7 @@ void main() {
     
     // Test 6: Distance Rounding
     test('UNIT-TRIP-007: Distance rounded to 2 decimal places', () {
-      final preciseDistance = 15.6789;
+      const preciseDistance = 15.6789;
       
       final rounded = roundDistance(preciseDistance, 2);
       

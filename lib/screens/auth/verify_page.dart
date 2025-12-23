@@ -12,7 +12,6 @@ import '../../widgets/back_button.dart';
 import '../../widgets/curved_container.dart';
 import '../../services/supabase_auth_service.dart';
 import '../../services/user_profile_service.dart';
-import '../../services/auth_exception.dart' as app_auth;
 import 'login_screen.dart';
 import 'register_page.dart';
 
@@ -31,6 +30,7 @@ class _VerifyPageState extends State<VerifyPage> {
   String _otpCode = "";
   bool _isVerifying = false;
   bool _isResending = false;
+  bool _isCheckingVerification = false;
   int _countdown = 0;
   Timer? _timer;
   String? _errorMessage;
@@ -107,17 +107,7 @@ class _VerifyPageState extends State<VerifyPage> {
     }
   }
 
-  Timer? _checkTimer;
-  bool _isCheckingVerification = false;
 
-  void _startPeriodicCheck() {
-    // Reduced frequency and added safety checks
-    _checkTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (mounted && !_isCheckingVerification) {
-        _checkVerificationStatus();
-      }
-    });
-  }
 
   Future<void> _checkVerificationStatus() async {
     if (_isCheckingVerification || !mounted) return;
@@ -335,7 +325,7 @@ class _VerifyPageState extends State<VerifyPage> {
                         const SizedBox(height: 10),
                         Text(
                           _errorMessage!,
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ],
 
@@ -389,11 +379,11 @@ class _VerifyPageState extends State<VerifyPage> {
             ),
 
             // Back Button
-            SafeArea(
+            const SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(left: 0, top: 16),
+                padding: EdgeInsets.only(left: 0, top: 16),
                 child: BackButtonWidget(
-                  previousPage: const RegisterPage(),
+                  previousPage: RegisterPage(),
                 ),
               ),
             ),

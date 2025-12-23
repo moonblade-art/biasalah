@@ -9,17 +9,17 @@ void main() {
     // 1. assertEquals equivalent
     test('ASSERT-001: assertEquals - Comparing values', () {
       // Purpose: Verify two values are equal
-      final result = 2 + 3;
-      final expected = 5;
+      const result = 2 + 3;
+      const expected = 5;
       
       expect(result, equals(expected)); // assertEquals($expected, $actual)
       
       // String comparison
-      final name = 'John Doe';
+      const name = 'John Doe';
       expect(name, equals('John Doe'));
       
       // Double comparison
-      final price = 10.50;
+      const price = 10.50;
       expect(price, equals(10.50));
       
       print('✅ assertEquals demonstrated');
@@ -28,14 +28,14 @@ void main() {
     // 2. assertTrue equivalent
     test('ASSERT-002: assertTrue - Boolean validation', () {
       // Purpose: Verify condition is true
-      final isValid = true;
-      final isActive = 1 == 1;
+      const isValid = true;
+      const isActive = 1 == 1;
       
       expect(isValid, isTrue); // assertTrue($condition)
       expect(isActive, isTrue);
       
       // Practical example
-      final email = 'test@example.com';
+      const email = 'test@example.com';
       expect(email.contains('@'), isTrue);
       
       print('✅ assertTrue demonstrated');
@@ -44,14 +44,14 @@ void main() {
     // 3. assertFalse equivalent
     test('ASSERT-003: assertFalse - Boolean negation', () {
       // Purpose: Verify condition is false
-      final isInvalid = false;
+      const isInvalid = false;
       final isEmpty = ''.isNotEmpty;
       
       expect(isInvalid, isFalse); // assertFalse($condition)
       expect(isEmpty, isFalse);
       
       // Practical example
-      final age = 15;
+      const age = 15;
       expect(age >= 18, isFalse); // Not an adult
       
       print('✅ assertFalse demonstrated');
@@ -76,8 +76,8 @@ void main() {
     // 5. assertNotNull equivalent
     test('ASSERT-005: assertNotNull - Value existence', () {
       // Purpose: Verify value is not null
-      final name = 'John';
-      final count = 0; // 0 is not null
+      const name = 'John';
+      const count = 0; // 0 is not null
       
       expect(name, isNotNull); // assertNotNull($value)
       expect(count, isNotNull);
@@ -111,27 +111,27 @@ void main() {
       // Purpose: Show more assertion types
       
       // assertGreaterThan
-      final age = 25;
+      const age = 25;
       expect(age, greaterThan(18));
       
       // assertLessThan
-      final price = 50;
+      const price = 50;
       expect(price, lessThan(100));
       
       // assertContains
-      final text = 'Hello World';
+      const text = 'Hello World';
       expect(text, contains('World'));
       
       // assertInstanceOf
-      final number = 42;
+      const number = 42;
       expect(number, isA<int>());
       
       // assertEmpty
-      final emptyString = '';
+      const emptyString = '';
       expect(emptyString, isEmpty);
       
       // assertNotEmpty
-      final fullString = 'Not empty';
+      const fullString = 'Not empty';
       expect(fullString, isNotEmpty);
       
       print('✅ Additional assertions demonstrated');
@@ -143,8 +143,8 @@ void main() {
     
     test('USECASE-001: Login validation', () {
       // Purpose: Validate login logic
-      final email = 'user@example.com';
-      final password = 'SecurePass123!';
+      const email = 'user@example.com';
+      const password = 'SecurePass123!';
       
       // Email format check
       expect(email.contains('@'), isTrue);
@@ -160,10 +160,10 @@ void main() {
     
     test('USECASE-002: Data calculation', () {
       // Purpose: Verify calculation logic
-      final distance = 10.0; // km
-      final emissionFactor = 0.231; // kg CO₂/km
+      const distance = 10.0; // km
+      const emissionFactor = 0.231; // kg CO₂/km
       
-      final totalEmission = distance * emissionFactor;
+      const totalEmission = distance * emissionFactor;
       
       expect(totalEmission, equals(2.31));
       expect(totalEmission, closeTo(2.31, 0.01)); // With tolerance

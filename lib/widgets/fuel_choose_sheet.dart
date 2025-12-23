@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/color_palette.dart';
 import '../widgets/page_transition.dart';
 import '../screens/home/tracking/tracking_screen.dart';
-import 'package:flutter/services.dart';
 
 class FuelChooseSheet extends StatefulWidget {
   final String vehicleType;
@@ -250,7 +249,7 @@ class _FuelChooseSheetState extends State<FuelChooseSheet> {
                                     ),
                                   ),
                                   if (isSelected)
-                                    Icon(
+                                    const Icon(
                                       Icons.check_circle,
                                       color: ColorPalette.primaryColor,
                                       size: 24,

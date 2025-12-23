@@ -6,7 +6,6 @@ import '../../../utils/color_palette.dart';
 import '../../../widgets/curved_container.dart';
 import '../../../widgets/page_transition.dart';
 import '/navigations/navigations.dart';
-import '../donation/donation_screen.dart';
 
 class CommunityDetailScreen extends StatelessWidget {
   final Community community;
@@ -28,9 +27,9 @@ class CommunityDetailScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.only(
                   top: 18, left: 16, right: 16, bottom: 18),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: ColorPalette.primaryColor,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
                 ),
@@ -143,7 +142,7 @@ class CommunityDetailScreen extends StatelessWidget {
                             // LOCATION
                             Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.location_on,
                                   color: ColorPalette.textSecondary,
                                   size: 18,

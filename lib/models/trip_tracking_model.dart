@@ -138,7 +138,7 @@ class TripTracking {
     } else if (endLocation != null) {
       return 'Ke $endLocation';
     } else {
-      return 'Perjalanan ${formattedDistance}';
+      return 'Perjalanan $formattedDistance';
     }
   }
 

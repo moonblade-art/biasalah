@@ -109,7 +109,7 @@ class EcoTrackApp extends StatelessWidget {
         '/comunity': (context) => const ComunityScreen(),
         '/history-offset': (context) => const HistoryOffsetScreen(),
         '/notifications': (context) => const NotificationScreen(),
-        '/navigations': (context) => Navigations(),
+        '/navigations': (context) => const Navigations(),
         '/edit-profile': (context) => const EditProfileScreen(),
         '/edit-notification': (context) => const EditNotificationScreen(),
       },
@@ -166,7 +166,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
           _authService.isEmailVerified();
 
       setState(() {
-        _targetWidget = isAuthenticated ? Navigations() : const WelcomePage();
+        _targetWidget = isAuthenticated ? const Navigations() : const WelcomePage();
         _isLoading = false;
       });
     } catch (e) {
@@ -181,9 +181,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: ColorPalette.background,
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 

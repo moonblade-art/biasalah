@@ -168,9 +168,9 @@ class _ComunityScreenState extends State<ComunityScreen>
       width: double.infinity,
       padding:
           const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: ColorPalette.primaryColor,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
         ),
@@ -333,7 +333,7 @@ class _ComunityScreenState extends State<ComunityScreen>
                 fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
-          Text(
+          const Text(
             'Tidak ada komunitas untuk filter yang dipilih',
             textAlign: TextAlign.center,
           ),
@@ -475,7 +475,7 @@ class _ComunityScreenState extends State<ComunityScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.monetization_on,
+              const Icon(Icons.monetization_on,
                   size: 16, color: Colors.green),
               const SizedBox(width: 6),
               Text(

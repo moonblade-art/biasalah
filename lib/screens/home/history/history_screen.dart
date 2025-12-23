@@ -54,7 +54,7 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
     final h = minutes ~/ 60;
     final m = minutes % 60;
     if (h > 0) return "${h}j ${m}m";
-    return "${m} menit";
+    return "$m menit";
   }
 
   Widget _buildEmptyState() {
@@ -112,9 +112,9 @@ class _HistoryScreenState extends State<HistoryScreen> with SingleTickerProvider
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: ColorPalette.primaryColor,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(20),
                   bottomRight: Radius.circular(20),
                 ),

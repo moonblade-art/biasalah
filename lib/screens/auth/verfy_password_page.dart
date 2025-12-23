@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:emission_tracker/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -121,6 +120,7 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
 
       if (res.user != null) {
         // OTP valid → lanjut ke halaman reset password
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           PageTransitionWidget.createRoute(
             ResetPasswordPage(email: widget.email),
@@ -131,7 +131,7 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text("Kode OTP salah atau telah kadaluarsa."),
           backgroundColor: Colors.redAccent,
         ),
@@ -276,9 +276,9 @@ class _VerifyPasswordPageState extends State<VerifyPasswordPage> {
               ),
             ),
 
-            SafeArea(
+            const SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(left: 8, top: 16),
+                padding: EdgeInsets.only(left: 8, top: 16),
                 child: BackButtonWidget(
                   previousPage: ForgotPasswordPage(),
                 ),

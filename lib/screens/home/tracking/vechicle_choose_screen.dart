@@ -18,11 +18,7 @@ class VehicleChooseScreen extends StatefulWidget {
 }
 
 class _VehicleChooseScreenState extends State<VehicleChooseScreen> {
-  final TrackingService _trackingService = TrackingService();
-  final SupabaseAuthService _authService = SupabaseAuthService();
   
-  List<Map<String, dynamic>> _popularConfigs = [];
-  bool _isLoading = true;
 
   Widget _buildVehicleButton({
     required BuildContext context,
@@ -96,13 +92,13 @@ class _VehicleChooseScreenState extends State<VehicleChooseScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: ColorPalette.primaryColor,
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),
                   ),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
                       color: Colors.black45,
                       blurRadius: 6,
@@ -174,7 +170,7 @@ class _VehicleChooseScreenState extends State<VehicleChooseScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: ColorPalette.primaryColor),
+                      const Icon(Icons.info_outline, color: ColorPalette.primaryColor),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(

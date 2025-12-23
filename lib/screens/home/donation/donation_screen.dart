@@ -14,7 +14,6 @@ import '../../../utils/color_palette.dart';
 import '../../../widgets/curved_container.dart';
 import '../../../widgets/primary_button.dart';
 import '../../../widgets/page_transition.dart';
-import 'donation_history_screen.dart';
 
 class DonationScreen extends StatefulWidget {
   final Community? selectedCommunity;
@@ -38,7 +37,7 @@ class _DonationScreenState extends State<DonationScreen> {
   bool _isLoading = true;
   bool _isCreatingDonation = false;
   bool _showCommunityList = false;
-  bool _isProcessing = false; // Added based on diff
+  final bool _isProcessing = false; // Added based on diff
 
   String? _errorMessage;
 
@@ -192,7 +191,7 @@ class _DonationScreenState extends State<DonationScreen> {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageTransitionWidget.createRoute(
-            Navigations(
+            const Navigations(
               initialPage: 1, // History tab (index 1)
             ),
           ),
@@ -290,23 +289,19 @@ class _DonationScreenState extends State<DonationScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: ColorPalette.primaryColor,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
         ),
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              "Donasi Offset Emisi",
+              "Donasi Offset",
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -322,6 +317,8 @@ class _DonationScreenState extends State<DonationScreen> {
 
   // New info section builder based on diff
   Widget _buildInfoSection() {
+    final isSmallScreen = MediaQuery.of(context).size.width < 400;
+
     return CurvedContainer(
       backgroundColor: ColorPalette.secondary,
       curveRadius: 30,
@@ -342,17 +339,21 @@ class _DonationScreenState extends State<DonationScreen> {
             children: [
               Expanded(
                 child: _buildEmisiCard(
-                  "Sudah di-offset",
-                  "${_userProfile!.emisiOffset.toStringAsFixed(2)} kg",
-                  Icons.check_circle_outline,
+                  title: "Sudah di-offset",
+                  value: "${(_userProfile?.emisiOffset ?? 0).toStringAsFixed(1)}",
+                  unit: "Kg",
+                  icon: Icons.check_circle_outline,
+                  isSmallScreen: isSmallScreen,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildEmisiCard(
-                  "Belum di-offset",
-                  "${_userProfile!.emisiBelum.toStringAsFixed(2)} kg",
-                  Icons.pending_actions,
+                  title: "Belum di-offset",
+                  value: "${(_userProfile?.emisiBelum ?? 0).toStringAsFixed(1)}",
+                  unit: "Kg",
+                  icon: Icons.pending_actions,
+                  isSmallScreen: isSmallScreen,
                 ),
               ),
             ],
@@ -362,45 +363,76 @@ class _DonationScreenState extends State<DonationScreen> {
     );
   }
 
+
+
   // New _buildEmisiCard based on diff
-  Widget _buildEmisiCard(String title, String value, IconData icon) {
+  Widget _buildEmisiCard({
+    required String title,
+    required String value,
+    String? unit,
+    required IconData icon,
+    bool isSmallScreen = false,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
       decoration: BoxDecoration(
-        color: ColorPalette.primaryColor.withOpacity(0.05),
+        color: Colors.white38,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ColorPalette.primaryColor.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: ColorPalette.primaryColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: ColorPalette.primaryColor, size: 20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: ColorPalette.textPrimary,
+                size: isSmallScreen ? 14 : 16,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: ColorPalette.textSecondary,
+                    fontSize: isSmallScreen ? 10 : 12,
+                    color: ColorPalette.textPrimary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  value,
+              ),
+            ],
+          ),
+          SizedBox(height: isSmallScreen ? 4 : 6),
+          RichText(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: value,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: isSmallScreen ? 16 : 20,
+                    color: ColorPalette.textPrimary,
                     fontWeight: FontWeight.bold,
-                    color: ColorPalette.primaryColor,
                   ),
                 ),
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 10 : 12,
+                      color: ColorPalette.textPrimary.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -469,7 +501,7 @@ class _DonationScreenState extends State<DonationScreen> {
                               ),
                             ),
                             if (isSelected)
-                              Icon(
+                              const Icon(
                                 Icons.check_circle,
                                 color: ColorPalette.primaryColor,
                                 size: 24,
@@ -545,7 +577,7 @@ class _DonationScreenState extends State<DonationScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: ColorPalette.primaryColor),
+                borderSide: const BorderSide(color: ColorPalette.primaryColor),
               ),
             ),
             onChanged: (value) {
@@ -569,7 +601,7 @@ class _DonationScreenState extends State<DonationScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: ColorPalette.primaryColor),
+                borderSide: const BorderSide(color: ColorPalette.primaryColor),
               ),
             ),
           ),
@@ -760,7 +792,7 @@ class _DonationScreenState extends State<DonationScreen> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ],
@@ -783,7 +815,7 @@ class _DonationScreenState extends State<DonationScreen> {
       ),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.eco,
             size: 32,
             color: ColorPalette.third,

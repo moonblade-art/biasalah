@@ -175,7 +175,7 @@ class _EditNotificationScreenState extends State<EditNotificationScreen> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.info_outline,
                   color: ColorPalette.primaryColor,
                   size: 24,
@@ -429,7 +429,7 @@ class _EditNotificationScreenState extends State<EditNotificationScreen> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: ColorPalette.primaryColor,
+          activeThumbColor: ColorPalette.primaryColor,
         ),
       ],
     );

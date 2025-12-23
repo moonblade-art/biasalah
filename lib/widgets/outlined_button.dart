@@ -19,14 +19,14 @@ class OutlinedButtonCustom extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: ColorPalette.primaryColor, width: 1.5),
+          side: const BorderSide(color: ColorPalette.primaryColor, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
         ),
         child: Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
             color: ColorPalette.primaryColor,

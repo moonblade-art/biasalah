@@ -43,7 +43,7 @@ class VehicleEmissionFactor {
   /// Get display name for CC range
   String get ccRangeDisplay {
     if (ccMax == 0) {
-      return '${ccMin}+ cc';
+      return '$ccMin+ cc';
     }
     return '$ccMin-$ccMax cc';
   }

@@ -220,7 +220,7 @@ class _HistoryOffsetScreenState extends State<HistoryOffsetScreen> {
               ),
               selectedColor: ColorPalette.primaryColor,
               backgroundColor: Colors.white,
-              side: BorderSide(color: ColorPalette.primaryColor),
+              side: const BorderSide(color: ColorPalette.primaryColor),
               onSelected: (selected) {
                 setState(() {
                   _selectedFilter = filter['key'] as String;
@@ -266,7 +266,7 @@ class _HistoryOffsetScreenState extends State<HistoryOffsetScreen> {
           ),
           
           // Empty state centered
-          Container(
+          SizedBox(
             height: MediaQuery.of(context).size.height * 0.5, // Take half screen height for centering
             child: Center(
               child: Column(

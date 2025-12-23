@@ -190,9 +190,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 ),
               ),
             ),
-            SafeArea(
+            const SafeArea(
               child: Padding(
-                padding: const EdgeInsets.only(left: 8, top: 16),
+                padding: EdgeInsets.only(left: 8, top: 16),
                 child: BackButtonWidget(),  // cukup ini
               ),
             ),

@@ -179,7 +179,6 @@ class OTPService {
     try {
       final isEmail = _isEmail(identifier);
       
-      AuthResponse response;
       if (isEmail) {
         // For email, we need to use magic link or existing password
         // Since we're doing OTP, we'll try to sign in with a temporary session

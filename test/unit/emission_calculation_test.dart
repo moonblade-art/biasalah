@@ -9,9 +9,9 @@ void main() {
     // Test 1: Car Emission Calculation
     test('UNIT-EMISSION-001: Car CO₂ calculation is correct', () {
       // Arrange
-      final vehicleType = 'car';
-      final distance = 10.0; // km
-      final expectedEmission = 2.31; // kg CO₂ (0.231 kg/km)
+      const vehicleType = 'car';
+      const distance = 10.0; // km
+      const expectedEmission = 2.31; // kg CO₂ (0.231 kg/km)
       
       // Act
       final result = calculateEmission(vehicleType, distance);
@@ -24,7 +24,7 @@ void main() {
     // Test 2: Motorcycle Emission
     test('UNIT-EMISSION-002: Motorcycle CO₂ calculation', () {
       final result = calculateEmission('motorcycle', 10.0);
-      final expected = 1.17; // 0.117 kg/km
+      const expected = 1.17; // 0.117 kg/km
       
       expect(result, closeTo(expected, 0.01));
     });
@@ -48,8 +48,8 @@ void main() {
     
     // Test 5: Different Distances
     test('UNIT-EMISSION-005: Emission scales with distance', () {
-      final distance1 = 10.0;
-      final distance2 = 20.0;
+      const distance1 = 10.0;
+      const distance2 = 20.0;
       
       final emission1 = calculateEmission('car', distance1);
       final emission2 = calculateEmission('car', distance2);

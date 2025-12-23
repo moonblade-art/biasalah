@@ -141,7 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.camera_alt, size: 32, color: ColorPalette.primaryColor),
+                              const Icon(Icons.camera_alt, size: 32, color: ColorPalette.primaryColor),
                               const SizedBox(height: 8),
                               Text(
                                 'Kamera',
@@ -171,7 +171,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.photo_library, size: 32, color: ColorPalette.primaryColor),
+                              const Icon(Icons.photo_library, size: 32, color: ColorPalette.primaryColor),
                               const SizedBox(height: 8),
                               Text(
                                 'Galeri',
@@ -678,7 +678,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 12),
           TextButton.icon(
             onPressed: kIsWeb ? null : _pickImage, // Disable on web for now
-            icon: Icon(Icons.camera_alt, color: ColorPalette.primaryColor),
+            icon: const Icon(Icons.camera_alt, color: ColorPalette.primaryColor),
             label: Text(
               kIsWeb ? 'Upload Foto (Coming Soon)' : 'Ubah Foto',
               style: GoogleFonts.poppins(
@@ -752,7 +752,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: ColorPalette.primaryColor),
+              borderSide: const BorderSide(color: ColorPalette.primaryColor),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -792,7 +792,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           obscureText: isObscure,
           validator: validator,
           decoration: InputDecoration(
-            prefixIcon: Icon(Icons.lock_outline, color: ColorPalette.primaryColor),
+            prefixIcon: const Icon(Icons.lock_outline, color: ColorPalette.primaryColor),
             suffixIcon: IconButton(
               icon: Icon(
                 isObscure ? Icons.visibility_off : Icons.visibility,
@@ -806,7 +806,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: ColorPalette.primaryColor),
+              borderSide: const BorderSide(color: ColorPalette.primaryColor),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

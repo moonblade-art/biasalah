@@ -306,7 +306,7 @@ class NotificationService {
       userId: userId,
       type: 'donation_success',
       title: 'Donasi Berhasil!',
-      message: 'Terima kasih! Donasi Rp ${_formatCurrency(donationAmount)} Anda telah berhasil membantu ${communityName}.',
+      message: 'Terima kasih! Donasi Rp ${_formatCurrency(donationAmount)} Anda telah berhasil membantu $communityName.',
       data: {
         'donation_amount': donationAmount,
         'carbon_offset': carbonOffset,

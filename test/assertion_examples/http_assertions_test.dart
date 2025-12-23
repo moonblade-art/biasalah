@@ -12,7 +12,7 @@ void main() {
       // Purpose: Verify HTTP response status code
       // Laravel: $response->assertStatus(200);
       
-      final mockStatusCode = 200;
+      const mockStatusCode = 200;
       
       expect(mockStatusCode, equals(200)); // assertStatus(200)
       
@@ -31,7 +31,7 @@ void main() {
       // Purpose: Shorthand for status 200
       // Laravel: $response->assertOk();
       
-      final statusCode = 200;
+      const statusCode = 200;
       
       expect(statusCode, equals(200)); // assertOk()
       expect(statusCode, isNot(equals(404)));
@@ -45,7 +45,7 @@ void main() {
       // Purpose: Verify resource created successfully
       // Laravel: $response->assertCreated();
       
-      final statusCode = 201;
+      const statusCode = 201;
       
       expect(statusCode, equals(201)); // assertCreated()
       
@@ -57,7 +57,7 @@ void main() {
       // Purpose: Verify resource not found
       // Laravel: $response->assertNotFound();
       
-      final statusCode = 404;
+      const statusCode = 404;
       
       expect(statusCode, equals(404)); // assertNotFound()
       
@@ -69,7 +69,7 @@ void main() {
       // Purpose: Verify JSON array length
       // Laravel: $response->assertJsonCount(5);
       
-      final mockJsonResponse = '''
+      const mockJsonResponse = '''
       [
         {"id": 1, "name": "Item 1"},
         {"id": 2, "name": "Item 2"},
@@ -90,7 +90,7 @@ void main() {
       // Purpose: Verify JSON contains expected data
       // Laravel: $response->assertJson(['success' => true, 'data' => 'value']);
       
-      final mockJsonResponse = '''
+      const mockJsonResponse = '''
       {
         "success": true,
         "message": "Operation successful",
@@ -123,7 +123,7 @@ void main() {
       // Purpose: Verify validation error response
       // Laravel: $response->assertJsonValidationErrors(['email', 'password']);
       
-      final mockErrorResponse = '''
+      const mockErrorResponse = '''
       {
         "success": false,
         "errors": {
@@ -155,7 +155,7 @@ void main() {
     test('HTTP-PRACTICAL-001: Login response', () {
       // Purpose: Verify login API response
       
-      final mockResponse = '''
+      const mockResponse = '''
       {
         "access_token": "eyJhbGc...",
         "token_type": "bearer",
@@ -183,7 +183,7 @@ void main() {
     test('HTTP-PRACTICAL-002: Pagination response', () {
       // Purpose: Verify paginated list response
       
-      final mockResponse = '''
+      const mockResponse = '''
       {
         "data": [
           {"id": 1, "name": "Item 1"},
@@ -217,7 +217,7 @@ void main() {
     test('HTTP-PRACTICAL-003: Error response structure', () {
       // Purpose: Verify consistent error format
       
-      final mockErrorResponse = '''
+      const mockErrorResponse = '''
       {
         "success": false,
         "error": {

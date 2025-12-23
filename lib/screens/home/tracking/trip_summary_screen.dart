@@ -78,7 +78,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.bookmark_add_rounded, color: ColorPalette.primaryColor, size: 24),
+                      const Icon(Icons.bookmark_add_rounded, color: ColorPalette.primaryColor, size: 24),
                       const SizedBox(width: 12),
                       Text(
                         "Simpan Perjalanan",
@@ -102,7 +102,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: ColorPalette.primaryColor),
+                        borderSide: const BorderSide(color: ColorPalette.primaryColor),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       prefixIcon: Icon(Icons.title, color: Colors.grey[500]),
@@ -179,7 +179,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
             const SizedBox(width: 8),
             Text("Perjalanan '$title' disimpan ke riwayat"),
           ],
@@ -193,7 +193,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => Navigations()),
+      MaterialPageRoute(builder: (_) => const Navigations()),
       (route) => false,
     );
   }
@@ -230,9 +230,9 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.only(top: 18, left: 16, right: 16, bottom: 18),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: ColorPalette.primaryColor,
-                    borderRadius: const BorderRadius.only(
+                    borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),
                     ),

@@ -111,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildDefaultAvatar() {
     return Icon(
       Icons.person,
-      size: 60,
+      size: 50,
       color: ColorPalette.primaryColor.withOpacity(0.5),
     );
   }
@@ -159,9 +159,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: ColorPalette.primaryColor,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
           bottomRight: Radius.circular(20),
         ),
@@ -169,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           BoxShadow(
             color: Colors.black45,
             blurRadius: 6,
-            offset: const Offset(0, 3),
+            offset: Offset(0, 3),
           ),
         ],
       ),

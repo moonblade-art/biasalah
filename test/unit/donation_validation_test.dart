@@ -75,7 +75,7 @@ void main() {
     // Test 8: Multiple Carbon Types
     test('UNIT-DONATION-008: Different carbon prices calculated correctly', () {
       final prices = [3000.0, 5000.0, 7000.0];
-      final carbonAmount = 10.0;
+      const carbonAmount = 10.0;
       
       expect(calculateDonationAmount(carbonAmount, prices[0]), equals(30000.0));
       expect(calculateDonationAmount(carbonAmount, prices[1]), equals(50000.0));

@@ -31,10 +31,10 @@ class CurvedContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(curveRadius),
           boxShadow: showShadow
               ? [
-                  BoxShadow(
+                  const BoxShadow(
                     color: Colors.black26,
                     blurRadius: 6,
-                    offset: const Offset(0, 3),
+                    offset: Offset(0, 3),
                   ),
                 ]
               : [],

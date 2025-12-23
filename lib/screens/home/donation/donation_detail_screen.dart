@@ -299,7 +299,7 @@ class DonationDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.note, color: ColorPalette.primaryColor, size: 20),
+              const Icon(Icons.note, color: ColorPalette.primaryColor, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Catatan',
@@ -409,7 +409,7 @@ class DonationDetailScreen extends StatelessWidget {
               onPressed: () {
                 _shareSuccess(context);
               },
-              icon: Icon(Icons.share, color: ColorPalette.primaryColor),
+              icon: const Icon(Icons.share, color: ColorPalette.primaryColor),
               label: Text(
                 'Bagikan Pencapaian',
                 style: GoogleFonts.poppins(
@@ -419,7 +419,7 @@ class DonationDetailScreen extends StatelessWidget {
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: ColorPalette.primaryColor),
+                side: const BorderSide(color: ColorPalette.primaryColor),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
@@ -472,7 +472,7 @@ Mari bersama-sama jaga bumi kita! 🌍
     // Here you would implement actual sharing functionality
     // For now, just show a snackbar
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Fitur berbagi akan segera tersedia!'),
         backgroundColor: ColorPalette.primaryColor,
       ),

@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigate to home
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            PageTransitionWidget.createRoute(Navigations()),
+            PageTransitionWidget.createRoute(const Navigations()),
           );
         }
       }
@@ -326,11 +326,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          SafeArea(
+          const SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(left: 0, top: 16),
+              padding: EdgeInsets.only(left: 0, top: 16),
               child: BackButtonWidget(
-              previousPage: const WelcomePage(),
+              previousPage: WelcomePage(),
               ),
             ),
           ),
